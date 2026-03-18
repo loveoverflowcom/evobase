@@ -1,0 +1,55 @@
+@startuml Eonbase_Auth_Token_Lifecycle
+!theme materia
+autonumber
+
+actor Client
+participant "Gateway" as GTW
+participant "JwtAuthService" as Auth
+participant "StorageAdapter" as Storage
+database "PostgreSQL" as PG
+
+== Register / Login ==
+Client -> GTW: POST /auth/register or /auth/login
+GTW -> Auth: register(credentials) / login(credentials)
+
+alt Register flow
+    Auth -> Auth: validate username + password
+    Auth -> Auth: hash password with Argon2
+    Auth -> Storage: create_user(...)
+    Storage -> PG: INSERT INTO auth.users ...
+    PG -->> Storage: UserRecord
+else Login flow
+    Auth -> Storage: find_user_by_username(...)
+    Storage -> PG: SELECT ... FROM auth.users
+    PG -->> Storage: UserRecord
+    Auth -> Auth: verify Argon2 password hash
+end
+
+Auth -> Auth: issue access_token (short-lived)
+Auth -> Auth: issue refresh_token (long-lived)
+Auth -> Auth: issue notification_token (long-lived)
+Auth -->> GTW: AuthResponse { user_id, username, tokens }
+GTW -->> Client: JSON token bundle
+
+note right of Client
+  access_token:
+  - dung cho protected REST va /messages/send
+
+  notification_token:
+  - dung cho GET /events
+
+  refresh_token:
+  - dung cho POST /auth/refresh
+end note
+
+== Refresh ==
+Client -> GTW: POST /auth/refresh
+GTW -> Auth: refresh(refresh_token)
+Auth -> Auth: verify refresh token signature + exp
+Auth -> Storage: find_user_by_id(sub)
+Storage -> PG: SELECT ... FROM auth.users
+PG -->> Storage: UserRecord
+Auth -> Auth: re-issue token bundle
+Auth -->> GTW: new AuthResponse
+GTW -->> Client: new tokens
+@enduml

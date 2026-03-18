@@ -1,0 +1,34 @@
+@startuml Eonbase_Bootstrap_Sequence
+!theme materia
+autonumber
+
+participant "main.rs" as Main
+participant "AppConfig" as Config
+participant "PostgresStorage" as Storage
+participant "JwtAuthService" as Auth
+participant "InMemoryMessagingHub" as Hub
+participant "AppState" as State
+participant "Gateway Router" as Router
+participant "Axum Server" as Axum
+
+Main -> Config: from_env()
+Config -->> Main: server + database + token config
+
+Main -> Storage: connect(DATABASE_URL)
+Storage -->> Main: Arc<PostgresStorage>
+
+Main -> Auth: new(storage.clone(), token_config)
+Auth -->> Main: Arc<JwtAuthService>
+
+Main -> Hub: default()
+Hub -->> Main: Arc<InMemoryMessagingHub>
+
+Main -> State: new(auth_service, messaging_service, storage)
+State -->> Main: AppState
+
+Main -> Router: build_router(state)
+Router -->> Main: axum::Router
+
+Main -> Axum: bind(addr) + serve(listener, router)
+Axum -->> Main: graceful shutdown on SIGINT / SIGTERM
+@enduml

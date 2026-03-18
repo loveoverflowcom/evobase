@@ -1,0 +1,42 @@
+@startuml Eonbase_Component_Overview
+!theme toy
+skinparam componentStyle uml2
+
+package "eonbase-workspace" {
+    [App: eonbase-server] as server
+
+    package "Crates" {
+        [eonbase-gateway\nAxum Router + Middleware] as gateway
+        [eonbase-auth\nJWT + Argon2] as auth
+        [eonbase-messaging\nIn-memory SSE Hub] as messaging
+        [eonbase-db\nSqlx + Postgres Adapter] as db
+        [eonbase-core\nTraits + Shared Types] as core
+    }
+}
+
+database "PostgreSQL" as postgres {
+    folder "auth.users" as users
+    folder "public.notes" as notes
+    folder "RLS Policies" as rls
+}
+
+server --> gateway : build_router(state)
+server --> auth : JwtAuthService::new(...)
+server --> db : PostgresStorage::connect(...)
+server --> messaging : InMemoryMessagingHub::default()
+
+gateway ..> auth : verify access / notification token
+gateway ..> messaging : register SSE / send events
+gateway ..> db : REST CRUD forwarding
+gateway ..> core : AppState + DTOs
+
+auth ..> db : load / create users
+auth ..> core : implements AuthService
+messaging ..> core : implements MessagingService
+db ..> core : implements StorageAdapter
+
+db <--> postgres : SQL + set_config(claims)
+postgres --> rls : enforce row visibility
+postgres --> users
+postgres --> notes
+@enduml

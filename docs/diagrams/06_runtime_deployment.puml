@@ -1,0 +1,37 @@
+@startuml Eonbase_Runtime_Deployment
+!theme toy
+skinparam componentStyle uml2
+
+node "Client Side" {
+    [Web / Mobile App] as client_app
+    [CLI / cURL / Test Runner] as cli
+}
+
+node "eonbase-server Process" as server {
+    component "Axum Router" as router
+    component "Auth Middleware" as middleware
+    component "JwtAuthService" as auth
+    component "InMemoryMessagingHub" as hub
+    component "PostgresStorage" as storage
+    collections "HashMap<UserId,\nConnectionId -> Sender>" as memory
+    queue "SSE Streams" as sse
+}
+
+database "PostgreSQL" as pg {
+    frame "Schemas + Tables" as db_objects
+    frame "GRANT + RLS" as security
+}
+
+client_app --> router : HTTP / SSE
+cli --> router : HTTP / SSE
+
+router --> middleware : protected routes
+middleware --> auth : verify JWT
+router --> hub : /events, /messages/send
+hub --> memory : active connections
+hub --> sse : fan-out events
+router --> storage : /rest/:table + auth queries
+storage --> pg : sqlx queries
+pg --> security
+pg --> db_objects
+@enduml

@@ -1,0 +1,32 @@
+@startuml Eonbase_Messaging_SSE_Flow
+!theme silver
+autonumber
+
+actor "User A (Receiver)" as UserA
+actor "User B (Sender)" as UserB
+participant "Gateway" as GTW
+participant "Auth Service" as Auth
+participant "Messaging Hub" as Hub
+
+== SSE connection setup ==
+UserA -> GTW: GET /events?token=<notification_token>
+GTW -> Auth: verify_notification_token(token)
+Auth -->> GTW: AuthContext { user_id = UserA }
+GTW -> Hub: connect(user_id)
+Hub -->> GTW: MessagingConnection { connection_id, receiver }
+GTW -->> UserA: SSE 200 OK
+GTW -> UserA: event: system.ready
+
+== Send event ==
+UserB -> GTW: POST /messages/send + access token
+GTW -> GTW: Access middleware validates sender
+GTW -> Hub: send(to_user_id, ServerEvent)
+Hub -> Hub: Lookup all active senders for user_id
+Hub -> UserA: event: chat.message
+GTW -->> UserB: { "delivered_connections": n }
+
+== Disconnect ==
+UserA -> GTW: Close socket / network drop
+GTW -> GTW: ConnectionGuard::drop()
+GTW -> Hub: disconnect(user_id, connection_id)
+@enduml

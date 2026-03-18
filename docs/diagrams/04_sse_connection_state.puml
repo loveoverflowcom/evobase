@@ -1,0 +1,23 @@
+@startuml Eonbase_SSE_Connection_State
+!theme silver
+
+[*] --> Disconnected
+
+Disconnected --> Authenticating : GET /events?token=...
+Authenticating --> Rejected : Token invalid / expired
+Rejected --> Disconnected
+
+Authenticating --> Registered : Token valid
+Registered --> Streaming : Hub::connect(user_id)
+
+state Streaming {
+  [*] --> Idle
+  Idle --> Delivering : Hub receives ServerEvent
+  Delivering --> Idle : SSE push success
+  Idle --> KeepAlive : periodic keep-alive
+  KeepAlive --> Idle : comment/frame sent
+}
+
+Streaming --> CleaningUp : socket closed / receiver dropped
+CleaningUp --> Disconnected : Hub::disconnect(...)
+@enduml

@@ -1,0 +1,19 @@
+[package]
+name = "eonbase-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+axum.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+eonbase-auth = { path = "../../crates/eonbase-auth" }
+eonbase-core = { path = "../../crates/eonbase-core" }
+eonbase-db = { path = "../../crates/eonbase-db" }
+eonbase-gateway = { path = "../../crates/eonbase-gateway" }
+eonbase-messaging = { path = "../../crates/eonbase-messaging" }

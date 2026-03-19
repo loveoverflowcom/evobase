@@ -92,6 +92,8 @@ curl -X POST http://127.0.0.1:3000/rest/public.notes \
   -d '{"owner_id":"<user-id>","body":"created via REST gateway"}'
 ```
 
+You can also run the scripted version from [`scripts/api-smoke.sh`](/Users/manhblue/Documents/personal/open_source/evobase/scripts/api-smoke.sh).
+
 ## Supported REST Query Syntax
 
 - `select=id,body,created_at`

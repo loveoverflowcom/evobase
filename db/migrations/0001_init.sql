@@ -29,7 +29,7 @@ with check (
     owner_id = nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 );
 
-grant usage on schema auth to postgres;
-grant usage on schema public to postgres;
-grant select, insert, update, delete on auth.users to postgres;
-grant select, insert, update, delete on public.notes to postgres;
+grant usage on schema auth to manhblue;
+grant usage on schema public to manhblue;
+grant select, insert, update, delete on auth.users to manhblue;
+grant select, insert, update, delete on public.notes to manhblue;

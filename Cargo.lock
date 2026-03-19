@@ -447,6 +447,7 @@ name = "evobase-messaging"
 version = "0.1.0"
 dependencies = [
  "evobase-core",
+ "serde_json",
  "tokio",
  "tracing",
  "uuid",

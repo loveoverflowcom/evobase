@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "EvoBase API",
+    "_postman_id": "e1b7c7c2-evobase-collection",
+    "description": "Collection for EvoBase auth, notes, and messaging APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:3000" },
+    { "key": "username", "value": "alice" },
+    { "key": "password", "value": "super-secret-password" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "notification_token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "note_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.environment.set('access_token', res.tokens.access_token);",
+                  "pm.environment.set('refresh_token', res.tokens.refresh_token);",
+                  "pm.environment.set('notification_token', res.tokens.notification_token);",
+                  "pm.environment.set('user_id', res.user_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notes",
+      "item": [
+        {
+          "name": "Create Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.notes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_id\": \"{{user_id}}\",\n  \"body\": \"hello from evobase\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.environment.set('note_id', res[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Notes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.notes?select=id,body,created_at&order=created_at.desc&limit=10"
+          }
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.notes?id=eq.{{note_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"updated body\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messaging",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{user_id}}\",\n  \"event\": \"chat.message\",\n  \"payload\": {\n    \"body\": \"hello\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

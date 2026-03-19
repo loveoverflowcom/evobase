@@ -4,12 +4,16 @@ use async_stream::stream;
 use axum::{
     Extension, Json, Router,
     extract::{Path, Query, RawQuery, State},
+    http::{HeaderMap, header::AUTHORIZATION},
     middleware,
     response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
 };
-use evobase_core::{AuthContext, AuthResponse, RefreshRequest, SendMessageRequest, ServerEvent};
-use serde::{Deserialize, Serialize};
+use evobase_core::{
+    ApiDocs, AppError, AuthContext, AuthResponse, MessagingDelivery, QualifiedTable,
+    RefreshRequest, SendMessageRequest, ServerEvent, TableDoc,
+};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
@@ -17,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{
     ApiResult, AppState,
-    middleware::require_access_token,
+    middleware::{extract_bearer_token, require_access_token},
     rest::{
         parse_delete_request, parse_insert_request, parse_select_request, parse_update_request,
     },
@@ -40,6 +44,8 @@ pub fn build_router(state: AppState) -> Router {
 
     Router::new()
         .route("/healthz", get(healthcheck))
+        .route("/docs", get(list_docs))
+        .route("/docs/{table}", get(get_table_docs))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/auth/refresh", post(refresh))
@@ -52,6 +58,33 @@ pub fn build_router(state: AppState) -> Router {
 
 async fn healthcheck() -> Json<Value> {
     Json(json!({ "status": "ok" }))
+}
+
+async fn list_docs(State(state): State<AppState>) -> ApiResult<Json<ApiDocs>> {
+    let tables = state.storage.describe_tables(None).await?;
+    Ok(Json(ApiDocs { tables }))
+}
+
+async fn get_table_docs(
+    State(state): State<AppState>,
+    Path(table): Path<String>,
+) -> ApiResult<Json<TableDoc>> {
+    let table = QualifiedTable::parse(&table)?;
+    let schema_was_specified = table.schema.is_some();
+    let mut tables = state.storage.describe_tables(Some(table)).await?;
+
+    let table_doc = match tables.len() {
+        0 => Err(AppError::NotFound("table docs not found".to_string())),
+        1 => Ok(tables.pop().expect("single table doc must exist")),
+        _ if !schema_was_specified => Err(AppError::BadRequest(
+            "table name is ambiguous; use schema.table".to_string(),
+        )),
+        _ => Err(AppError::Internal(
+            "multiple table docs matched a schema-qualified name".to_string(),
+        )),
+    }?;
+
+    Ok(Json(table_doc))
 }
 
 async fn register(
@@ -80,9 +113,13 @@ async fn refresh(
 
 async fn events(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(query): Query<EventsQuery>,
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, Infallible>>>> {
-    let auth = state.auth_service.verify_notification_token(&query.token)?;
+    let notification_token = extract_notification_token(&headers, &query)?;
+    let auth = state
+        .auth_service
+        .verify_notification_token(&notification_token)?;
     let connection = state.messaging_service.connect(auth.user_id)?;
     let guard: ConnectionGuard = ConnectionGuard {
         messaging_service: state.messaging_service.clone(),
@@ -90,6 +127,7 @@ async fn events(
         connection_id: connection.connection_id,
     };
     let user_id = auth.user_id;
+    let replayed_messages = connection.replayed_messages;
     let mut receiver = connection.receiver;
 
     let stream = stream! {
@@ -99,6 +137,7 @@ async fn events(
             payload: json!({
                 "status": "connected",
                 "user_id": user_id,
+                "replayed_messages": replayed_messages,
             }),
         }));
 
@@ -118,8 +157,8 @@ async fn send_message(
     State(state): State<AppState>,
     Extension(current_user): Extension<AuthContext>,
     Json(request): Json<SendMessageRequest>,
-) -> ApiResult<Json<SendMessageResponse>> {
-    let delivered_connections = state.messaging_service.send(
+) -> ApiResult<Json<MessagingDelivery>> {
+    let delivery = state.messaging_service.send(
         request.to_user_id,
         ServerEvent {
             event: request.event,
@@ -130,13 +169,12 @@ async fn send_message(
     info!(
         from_user_id = %current_user.user_id,
         to_user_id = %request.to_user_id,
-        delivered_connections,
+        delivered_connections = delivery.delivered_connections,
+        queued_messages = delivery.queued_messages,
         "message delivered"
     );
 
-    Ok(Json(SendMessageResponse {
-        delivered_connections,
-    }))
+    Ok(Json(delivery))
 }
 
 async fn select_rows(
@@ -209,12 +247,7 @@ fn sse_event(message: ServerEvent) -> Event {
 
 #[derive(Debug, Deserialize)]
 struct EventsQuery {
-    token: String,
-}
-
-#[derive(Debug, Serialize)]
-struct SendMessageResponse {
-    delivered_connections: usize,
+    token: Option<String>,
 }
 
 struct ConnectionGuard {
@@ -228,4 +261,24 @@ impl Drop for ConnectionGuard {
         self.messaging_service
             .disconnect(self.user_id, self.connection_id);
     }
+}
+
+fn extract_notification_token(
+    headers: &HeaderMap,
+    query: &EventsQuery,
+) -> Result<String, AppError> {
+    if let Some(header) = headers
+        .get(AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+    {
+        return extract_bearer_token(header).map(str::to_owned);
+    }
+
+    let token = query
+        .token
+        .as_deref()
+        .filter(|value| !value.is_empty())
+        .ok_or(AppError::Unauthorized)?;
+
+    Ok(token.to_string())
 }

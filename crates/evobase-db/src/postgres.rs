@@ -1,8 +1,10 @@
+use std::collections::BTreeMap;
+
 use async_trait::async_trait;
 use evobase_core::{
-    AppError, AppResult, AuthContext, Filter, FilterOperator, OrderBy, QualifiedTable, SelectList,
-    StorageAdapter, TableDelete, TableInsert, TableSelect, TableUpdate, UserRecord,
-    quoted_identifier, validate_identifier,
+    AppError, AppResult, AuthContext, ColumnDoc, Filter, FilterOperator, OrderBy, QualifiedTable,
+    QueryDoc, RlsDoc, RlsPolicyDoc, SelectList, StorageAdapter, TableDelete, TableDoc, TableInsert,
+    TableMethods, TableSelect, TableUpdate, UserRecord, quoted_identifier, validate_identifier,
 };
 use serde_json::{Map, Value};
 use sqlx::{PgPool, Postgres, QueryBuilder, Transaction, postgres::PgPoolOptions};
@@ -11,6 +13,40 @@ use uuid::Uuid;
 
 pub struct PostgresStorage {
     pool: PgPool,
+}
+
+#[derive(Debug, Clone)]
+struct ColumnRow {
+    schema: String,
+    table: String,
+    column: String,
+    data_type: String,
+    nullable: bool,
+    has_default: bool,
+}
+
+#[derive(Debug, Clone)]
+struct GrantRow {
+    schema: String,
+    table: String,
+    privilege: String,
+}
+
+#[derive(Debug, Clone)]
+struct RlsRow {
+    schema: String,
+    table: String,
+    enabled: bool,
+}
+
+#[derive(Debug, Clone)]
+struct PolicyRow {
+    schema: String,
+    table: String,
+    name: String,
+    command: String,
+    using_expr: Option<String>,
+    with_check: Option<String>,
 }
 
 impl PostgresStorage {
@@ -200,6 +236,86 @@ impl PostgresStorage {
             }
         }
     }
+
+    fn build_table_docs(
+        columns: Vec<ColumnRow>,
+        grants: Vec<GrantRow>,
+        rls_rows: Vec<RlsRow>,
+        policies: Vec<PolicyRow>,
+    ) -> Vec<TableDoc> {
+        let mut tables = BTreeMap::<(String, String), TableDoc>::new();
+
+        for column in columns {
+            let key = (column.schema.clone(), column.table.clone());
+            let table_doc = tables.entry(key).or_insert_with(|| {
+                let name = format!("{}.{}", column.schema, column.table);
+                TableDoc {
+                    name: name.clone(),
+                    schema: column.schema.clone(),
+                    table: column.table.clone(),
+                    endpoint: format!("/rest/{name}"),
+                    columns: Vec::new(),
+                    methods: TableMethods::default(),
+                    rls: RlsDoc {
+                        enabled: false,
+                        policies: Vec::new(),
+                    },
+                    query: QueryDoc::from_columns(&[]),
+                }
+            });
+
+            table_doc.columns.push(ColumnDoc {
+                name: column.column,
+                data_type: column.data_type,
+                nullable: column.nullable,
+                has_default: column.has_default,
+            });
+        }
+
+        for grant in grants {
+            let Some(table_doc) = tables.get_mut(&(grant.schema, grant.table)) else {
+                continue;
+            };
+
+            match grant.privilege.as_str() {
+                "SELECT" => table_doc.methods.get = true,
+                "INSERT" => table_doc.methods.post = true,
+                "UPDATE" => table_doc.methods.patch = true,
+                "DELETE" => table_doc.methods.delete = true,
+                _ => {}
+            }
+        }
+
+        for rls in rls_rows {
+            let Some(table_doc) = tables.get_mut(&(rls.schema, rls.table)) else {
+                continue;
+            };
+
+            table_doc.rls.enabled = rls.enabled;
+        }
+
+        for policy in policies {
+            let Some(table_doc) = tables.get_mut(&(policy.schema, policy.table)) else {
+                continue;
+            };
+
+            table_doc.rls.policies.push(RlsPolicyDoc {
+                name: policy.name,
+                command: policy.command,
+                r#using: policy.using_expr,
+                with_check: policy.with_check,
+            });
+        }
+
+        let mut docs = tables.into_values().collect::<Vec<_>>();
+
+        for table_doc in &mut docs {
+            table_doc.query = QueryDoc::from_columns(&table_doc.columns);
+        }
+
+        docs.retain(|table_doc| table_doc.methods.any());
+        docs
+    }
 }
 
 #[async_trait]
@@ -264,6 +380,148 @@ impl StorageAdapter for PostgresStorage {
             })
         })
         .map_err(map_sqlx_error)
+    }
+
+    async fn describe_tables(&self, table: Option<QualifiedTable>) -> AppResult<Vec<TableDoc>> {
+        let (schema_filter, table_filter) = match table {
+            Some(table) => (table.schema, Some(table.table)),
+            None => (None, None),
+        };
+
+        let columns = sqlx::query_as::<_, (String, String, String, String, i32, bool, bool)>(
+            "select
+                c.table_schema,
+                c.table_name,
+                c.column_name,
+                case
+                    when c.data_type = 'USER-DEFINED' then c.udt_name
+                    when c.data_type = 'ARRAY' then c.udt_name
+                    else c.data_type
+                end as data_type,
+                c.ordinal_position,
+                c.is_nullable = 'YES' as nullable,
+                c.column_default is not null as has_default
+             from information_schema.columns c
+             where c.table_schema not in ('pg_catalog', 'information_schema')
+               and ($1::text is null or c.table_schema = $1)
+               and ($2::text is null or c.table_name = $2)
+             order by c.table_schema, c.table_name, c.ordinal_position",
+        )
+        .bind(schema_filter.as_deref())
+        .bind(table_filter.as_deref())
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .into_iter()
+        .map(
+            |(schema, table, column, data_type, _ordinal_position, nullable, has_default)| {
+                ColumnRow {
+                    schema,
+                    table,
+                    column,
+                    data_type,
+                    nullable,
+                    has_default,
+                }
+            },
+        )
+        .collect();
+
+        let grants = sqlx::query_as::<_, (String, String, String)>(
+            "select
+                g.table_schema,
+                g.table_name,
+                g.privilege_type
+             from information_schema.role_table_grants g
+             where g.grantee = current_user
+               and g.table_schema not in ('pg_catalog', 'information_schema')
+               and g.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
+               and ($1::text is null or g.table_schema = $1)
+               and ($2::text is null or g.table_name = $2)
+             order by g.table_schema, g.table_name, g.privilege_type",
+        )
+        .bind(schema_filter.as_deref())
+        .bind(table_filter.as_deref())
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .into_iter()
+        .map(|(schema, table, privilege)| GrantRow {
+            schema,
+            table,
+            privilege,
+        })
+        .collect();
+
+        let rls_rows = sqlx::query_as::<_, (String, String, bool)>(
+            "select
+                n.nspname as schema_name,
+                c.relname as table_name,
+                c.relrowsecurity
+             from pg_class c
+             join pg_namespace n on n.oid = c.relnamespace
+             where c.relkind in ('r', 'p')
+               and n.nspname not in ('pg_catalog', 'information_schema')
+               and ($1::text is null or n.nspname = $1)
+               and ($2::text is null or c.relname = $2)
+             order by n.nspname, c.relname",
+        )
+        .bind(schema_filter.as_deref())
+        .bind(table_filter.as_deref())
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .into_iter()
+        .map(|(schema, table, enabled)| RlsRow {
+            schema,
+            table,
+            enabled,
+        })
+        .collect();
+
+        let policies = sqlx::query_as::<
+            _,
+            (
+                String,
+                String,
+                String,
+                String,
+                Option<String>,
+                Option<String>,
+            ),
+        >(
+            "select
+                p.schemaname,
+                p.tablename,
+                p.policyname,
+                p.cmd,
+                p.qual,
+                p.with_check
+             from pg_policies p
+             where p.schemaname not in ('pg_catalog', 'information_schema')
+               and ($1::text is null or p.schemaname = $1)
+               and ($2::text is null or p.tablename = $2)
+             order by p.schemaname, p.tablename, p.policyname",
+        )
+        .bind(schema_filter.as_deref())
+        .bind(table_filter.as_deref())
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .into_iter()
+        .map(
+            |(schema, table, name, command, using_expr, with_check)| PolicyRow {
+                schema,
+                table,
+                name,
+                command,
+                using_expr,
+                with_check,
+            },
+        )
+        .collect();
+
+        Ok(Self::build_table_docs(columns, grants, rls_rows, policies))
     }
 
     async fn select_rows(
@@ -425,4 +683,91 @@ impl StorageAdapter for PostgresStorage {
 fn map_sqlx_error(error: sqlx::Error) -> AppError {
     debug!(error = %error, "postgres query failed");
     AppError::Database(error.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ColumnRow, GrantRow, PolicyRow, PostgresStorage, RlsRow};
+
+    #[test]
+    fn build_table_docs_combines_introspection_metadata() {
+        let docs = PostgresStorage::build_table_docs(
+            vec![
+                ColumnRow {
+                    schema: "public".to_string(),
+                    table: "notes".to_string(),
+                    column: "id".to_string(),
+                    data_type: "uuid".to_string(),
+                    nullable: false,
+                    has_default: true,
+                },
+                ColumnRow {
+                    schema: "public".to_string(),
+                    table: "notes".to_string(),
+                    column: "body".to_string(),
+                    data_type: "text".to_string(),
+                    nullable: false,
+                    has_default: false,
+                },
+            ],
+            vec![
+                GrantRow {
+                    schema: "public".to_string(),
+                    table: "notes".to_string(),
+                    privilege: "SELECT".to_string(),
+                },
+                GrantRow {
+                    schema: "public".to_string(),
+                    table: "notes".to_string(),
+                    privilege: "INSERT".to_string(),
+                },
+            ],
+            vec![RlsRow {
+                schema: "public".to_string(),
+                table: "notes".to_string(),
+                enabled: true,
+            }],
+            vec![PolicyRow {
+                schema: "public".to_string(),
+                table: "notes".to_string(),
+                name: "notes_owner_policy".to_string(),
+                command: "ALL".to_string(),
+                using_expr: Some("owner_id = auth.uid()".to_string()),
+                with_check: Some("owner_id = auth.uid()".to_string()),
+            }],
+        );
+
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0].name, "public.notes");
+        assert_eq!(docs[0].endpoint, "/rest/public.notes");
+        assert_eq!(docs[0].columns.len(), 2);
+        assert!(docs[0].methods.get);
+        assert!(docs[0].methods.post);
+        assert!(!docs[0].methods.patch);
+        assert!(docs[0].rls.enabled);
+        assert_eq!(docs[0].rls.policies.len(), 1);
+        assert_eq!(
+            docs[0].query.selectable_columns,
+            vec!["id".to_string(), "body".to_string()]
+        );
+    }
+
+    #[test]
+    fn build_table_docs_filters_tables_without_rest_privileges() {
+        let docs = PostgresStorage::build_table_docs(
+            vec![ColumnRow {
+                schema: "public".to_string(),
+                table: "audit_log".to_string(),
+                column: "id".to_string(),
+                data_type: "uuid".to_string(),
+                nullable: false,
+                has_default: true,
+            }],
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+        );
+
+        assert!(docs.is_empty());
+    }
 }

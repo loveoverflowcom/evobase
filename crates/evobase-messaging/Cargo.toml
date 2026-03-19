@@ -12,3 +12,6 @@ tracing.workspace = true
 uuid.workspace = true
 
 evobase-core = { path = "../evobase-core" }
+
+[dev-dependencies]
+serde_json.workspace = true

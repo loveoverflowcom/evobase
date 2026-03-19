@@ -18,7 +18,9 @@ It keeps application logic thin by pushing authorization and row-level access in
 - Access, refresh, and notification JWTs
 - Authenticated SSE connections at `/events`
 - In-memory fan-out messaging at `/messages/send`
+- Offline in-memory relay queue with automatic replay and 3-day TTL
 - PostgREST-like REST table gateway at `/rest/:table`
+- DB introspection docs at `/docs` and `/docs/:table`
 - Request-scoped PostgreSQL claim forwarding via `set_config`
 
 ## Quick Start
@@ -63,6 +65,13 @@ Open an SSE stream:
 curl -N "http://127.0.0.1:3000/events?token=<notification-token>"
 ```
 
+Or use the notification token via header:
+
+```bash
+curl -N http://127.0.0.1:3000/events \
+  -H "Authorization: Bearer <notification-token>"
+```
+
 Send a message:
 
 ```bash
@@ -75,6 +84,11 @@ curl -X POST http://127.0.0.1:3000/messages/send \
     "payload":{"body":"hello from evobase"}
   }'
 ```
+
+If the recipient is offline, the message is queued in memory for up to 3 days and replayed on the
+next SSE connection before being removed from the queue.
+The API response now includes `delivered_connections` and `queued_messages` so the client can tell
+whether the event was delivered live or stored for relay.
 
 Read from a table with RLS applied:
 
@@ -93,6 +107,18 @@ curl -X POST http://127.0.0.1:3000/rest/public.notes \
 ```
 
 You can also run the scripted version from [`scripts/api-smoke.sh`](/Users/manhblue/Documents/personal/open_source/evobase/scripts/api-smoke.sh).
+
+Read generated docs for all exposed tables:
+
+```bash
+curl http://127.0.0.1:3000/docs
+```
+
+Read generated docs for a single table:
+
+```bash
+curl http://127.0.0.1:3000/docs/public.notes
+```
 
 ## Supported REST Query Syntax
 

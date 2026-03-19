@@ -30,7 +30,7 @@ pub async fn require_access_token(
     Ok(next.run(request).await)
 }
 
-fn extract_bearer_token(header: &str) -> Result<&str, AppError> {
+pub(crate) fn extract_bearer_token(header: &str) -> Result<&str, AppError> {
     let Some(token) = header.strip_prefix("Bearer ") else {
         return Err(AppError::Unauthorized);
     };

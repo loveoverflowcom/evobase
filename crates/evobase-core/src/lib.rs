@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod config;
+pub mod docs;
 pub mod error;
 pub mod messaging;
 pub mod rest;
@@ -10,8 +11,11 @@ pub use auth::{
     RegisterRequest, TokenBundle, TokenClaims,
 };
 pub use config::{AppConfig, DatabaseConfig, ServerConfig, TokenConfig};
+pub use docs::{ApiDocs, ColumnDoc, QueryDoc, RlsDoc, RlsPolicyDoc, TableDoc, TableMethods};
 pub use error::{AppError, AppResult};
-pub use messaging::{MessagingConnection, MessagingService, SendMessageRequest, ServerEvent};
+pub use messaging::{
+    MessagingConnection, MessagingDelivery, MessagingService, SendMessageRequest, ServerEvent,
+};
 pub use rest::{
     Filter, FilterOperator, OrderBy, QualifiedTable, SelectList, TableDelete, TableInsert,
     TableSelect, TableUpdate, quoted_identifier, validate_identifier,

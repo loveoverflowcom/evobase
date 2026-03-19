@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::RwLock};
 
-use eonbase_core::{AppError, AppResult, MessagingConnection, MessagingService, ServerEvent};
+use evobase_core::{AppError, AppResult, MessagingConnection, MessagingService, ServerEvent};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tracing::{debug, warn};
 use uuid::Uuid;

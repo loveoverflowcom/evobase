@@ -1,16 +1,16 @@
-@startuml Eonbase_Component_Overview
-!theme toy
+@startuml Evobase_Component_Overview
+!theme materia
 skinparam componentStyle uml2
 
-package "eonbase-workspace" {
-    [App: eonbase-server] as server
+package "evobase-workspace" {
+    [App: evobase-server] as server
 
     package "Crates" {
-        [eonbase-gateway\nAxum Router + Middleware] as gateway
-        [eonbase-auth\nJWT + Argon2] as auth
-        [eonbase-messaging\nIn-memory SSE Hub] as messaging
-        [eonbase-db\nSqlx + Postgres Adapter] as db
-        [eonbase-core\nTraits + Shared Types] as core
+        [evobase-gateway\nAxum Router + Middleware] as gateway
+        [evobase-auth\nJWT + Argon2] as auth
+        [evobase-messaging\nIn-memory SSE Hub] as messaging
+        [evobase-db\nSqlx + Postgres Adapter] as db
+        [evobase-core\nTraits + Shared Types] as core
     }
 }
 

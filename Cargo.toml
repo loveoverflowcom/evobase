@@ -1,11 +1,11 @@
 [workspace]
 members = [
-    "apps/eonbase-server",
-    "crates/eonbase-auth",
-    "crates/eonbase-core",
-    "crates/eonbase-db",
-    "crates/eonbase-gateway",
-    "crates/eonbase-messaging",
+    "apps/evobase-server",
+    "crates/evobase-auth",
+    "crates/evobase-core",
+    "crates/evobase-db",
+    "crates/evobase-gateway",
+    "crates/evobase-messaging",
 ]
 resolver = "2"
 

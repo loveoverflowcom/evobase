@@ -1,9 +1,9 @@
-# Eonbase PlantUML Diagrams
+# Evobase PlantUML Diagrams
 
 Bo diagram nay duoc viet de ho tro 2 nhu cau:
 
 - Tai lieu kien truc cho team
-- Doc nhanh flow cua `eonbase` ma khong can mo tung crate
+- Doc nhanh flow cua `evobase` ma khong can mo tung crate
 
 ## Danh sach diagram
 
@@ -13,7 +13,7 @@ Bo diagram nay duoc viet de ho tro 2 nhu cau:
 - `04_sse_connection_state.puml`: Vong doi ket noi SSE trong memory hub
 - `05_bootstrap_sequence.puml`: Trinh tu startup cua server app
 - `06_runtime_deployment.puml`: Topology runtime cua process va PostgreSQL
-- `07_core_contracts_class.puml`: Traits o `eonbase-core` va concrete implementations
+- `07_core_contracts_class.puml`: Traits o `evobase-core` va concrete implementations
 - `08_auth_token_lifecycle.puml`: Login, refresh, va cach 3 loai token duoc su dung
 - `09_rest_gateway_flow.puml`: Flow PostgREST-like khi goi `/rest/:table`
 - `10_data_model_erd.puml`: Data model MVP va boundary RLS

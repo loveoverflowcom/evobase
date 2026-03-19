@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use eonbase_core::{AuthService, MessagingService, StorageAdapter};
+use evobase_core::{AuthService, MessagingService, StorageAdapter};
 
 #[derive(Clone)]
 pub struct AppState {

@@ -1,8 +1,8 @@
-@startuml Eonbase_Core_Contracts
+@startuml Evobase_Core_Contracts
 !theme toy
 skinparam linetype ortho
 
-package "eonbase-core" {
+package "evobase-core" {
     interface AuthService {
         +register(request)
         +login(request)

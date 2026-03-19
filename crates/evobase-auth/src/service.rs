@@ -8,7 +8,7 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
 };
 use async_trait::async_trait;
-use eonbase_core::{
+use evobase_core::{
     AppError, AppResult, AuthContext, AuthResponse, AuthService, LoginRequest, RegisterRequest,
     StorageAdapter, TokenBundle, TokenClaims, TokenConfig,
 };

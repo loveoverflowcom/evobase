@@ -8,7 +8,7 @@ use axum::{
     response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
 };
-use eonbase_core::{AuthContext, AuthResponse, RefreshRequest, SendMessageRequest, ServerEvent};
+use evobase_core::{AuthContext, AuthResponse, RefreshRequest, SendMessageRequest, ServerEvent};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -56,7 +56,7 @@ async fn healthcheck() -> Json<Value> {
 
 async fn register(
     State(state): State<AppState>,
-    Json(request): Json<eonbase_core::RegisterRequest>,
+    Json(request): Json<evobase_core::RegisterRequest>,
 ) -> ApiResult<Json<AuthResponse>> {
     let response = state.auth_service.register(request).await?;
     Ok(Json(response))
@@ -64,7 +64,7 @@ async fn register(
 
 async fn login(
     State(state): State<AppState>,
-    Json(request): Json<eonbase_core::LoginRequest>,
+    Json(request): Json<evobase_core::LoginRequest>,
 ) -> ApiResult<Json<AuthResponse>> {
     let response = state.auth_service.login(request).await?;
     Ok(Json(response))
@@ -84,7 +84,7 @@ async fn events(
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, Infallible>>>> {
     let auth = state.auth_service.verify_notification_token(&query.token)?;
     let connection = state.messaging_service.connect(auth.user_id)?;
-    let guard = ConnectionGuard {
+    let guard: ConnectionGuard = ConnectionGuard {
         messaging_service: state.messaging_service.clone(),
         user_id: auth.user_id,
         connection_id: connection.connection_id,
@@ -218,7 +218,7 @@ struct SendMessageResponse {
 }
 
 struct ConnectionGuard {
-    messaging_service: std::sync::Arc<dyn eonbase_core::MessagingService>,
+    messaging_service: std::sync::Arc<dyn evobase_core::MessagingService>,
     user_id: Uuid,
     connection_id: Uuid,
 }

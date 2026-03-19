@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use eonbase_core::{
+use evobase_core::{
     AppError, AppResult, AuthContext, Filter, FilterOperator, OrderBy, QualifiedTable, SelectList,
     StorageAdapter, TableDelete, TableInsert, TableSelect, TableUpdate, UserRecord,
     quoted_identifier, validate_identifier,

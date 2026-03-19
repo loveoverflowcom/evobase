@@ -1,4 +1,4 @@
-@startuml Eonbase_Auth_RLS_Sequence
+@startuml Evobase_Auth_RLS_Sequence
 !theme materia
 autonumber
 

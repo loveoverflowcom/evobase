@@ -1,4 +1,4 @@
-@startuml Eonbase_Runtime_Deployment
+@startuml Evobase_Runtime_Deployment
 !theme toy
 skinparam componentStyle uml2
 
@@ -7,7 +7,7 @@ node "Client Side" {
     [CLI / cURL / Test Runner] as cli
 }
 
-node "eonbase-server Process" as server {
+node "evobase-server Process" as server {
     component "Axum Router" as router
     component "Auth Middleware" as middleware
     component "JwtAuthService" as auth

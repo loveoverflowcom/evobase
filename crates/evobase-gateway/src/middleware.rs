@@ -5,7 +5,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use eonbase_core::{AppError, AuthContext};
+use evobase_core::{AppError, AuthContext};
 
 use crate::{ApiError, AppState};
 

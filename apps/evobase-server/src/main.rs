@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use eonbase_auth::JwtAuthService;
-use eonbase_core::AppConfig;
-use eonbase_db::PostgresStorage;
-use eonbase_gateway::{AppState, build_router};
-use eonbase_messaging::InMemoryMessagingHub;
+use evobase_auth::JwtAuthService;
+use evobase_core::AppConfig;
+use evobase_db::PostgresStorage;
+use evobase_gateway::{AppState, build_router};
+use evobase_messaging::InMemoryMessagingHub;
 use tokio::{net::TcpListener, signal};
 use tracing::info;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let router = build_router(state);
 
     let listener = TcpListener::bind(config.server.addr).await?;
-    info!(address = %config.server.addr, "eonbase server listening");
+    info!(address = %config.server.addr, "evobase server listening");
 
     axum::serve(listener, router)
         .with_graceful_shutdown(shutdown_signal())
@@ -34,7 +34,7 @@ fn init_tracing() {
     tracing_subscriber::registry()
         .with(
             EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info,eonbase_server=debug")),
+                .unwrap_or_else(|_| EnvFilter::new("info,evobase_server=debug")),
         )
         .with(fmt::layer().with_target(true))
         .init();

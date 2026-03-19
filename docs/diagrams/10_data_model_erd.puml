@@ -1,4 +1,4 @@
-@startuml Eonbase_Data_Model_ERD
+@startuml Evobase_Data_Model_ERD
 !theme toy
 hide methods
 hide stereotypes

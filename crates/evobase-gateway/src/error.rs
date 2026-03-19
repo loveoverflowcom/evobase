@@ -2,7 +2,7 @@ use axum::{
     Json,
     response::{IntoResponse, Response},
 };
-use eonbase_core::AppError;
+use evobase_core::AppError;
 use serde::Serialize;
 
 pub type ApiResult<T> = Result<T, ApiError>;

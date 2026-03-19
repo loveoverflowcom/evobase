@@ -1,4 +1,4 @@
-@startuml Eonbase_Auth_Token_Lifecycle
+@startuml Evobase_Auth_Token_Lifecycle
 !theme materia
 autonumber
 

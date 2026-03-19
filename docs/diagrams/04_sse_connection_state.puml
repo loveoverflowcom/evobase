@@ -1,4 +1,4 @@
-@startuml Eonbase_SSE_Connection_State
+@startuml Evobase_SSE_Connection_State
 !theme silver
 
 [*] --> Disconnected

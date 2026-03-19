@@ -1,16 +1,16 @@
-# eonbase
+# evobase
 
-`eonbase` is a minimal, modular Rust backend platform inspired by Supabase/PostgREST.
+`evobase` is a minimal, modular Rust backend platform inspired by Supabase/PostgREST.
 It keeps application logic thin by pushing authorization and row-level access into PostgreSQL.
 
 ## Architecture
 
-- `eonbase-core`: shared types, traits, config, and errors
-- `eonbase-db`: PostgreSQL adapter and PostgREST-like table access
-- `eonbase-auth`: username/password auth with JWT issuance
-- `eonbase-messaging`: in-memory SSE notification hub
-- `eonbase-gateway`: HTTP routing, middleware, and request parsing
-- `eonbase-server`: bootstrap binary
+- `evobase-core`: shared types, traits, config, and errors
+- `evobase-db`: PostgreSQL adapter and PostgREST-like table access
+- `evobase-auth`: username/password auth with JWT issuance
+- `evobase-messaging`: in-memory SSE notification hub
+- `evobase-gateway`: HTTP routing, middleware, and request parsing
+- `evobase-server`: bootstrap binary
 
 ## Features
 
@@ -28,7 +28,7 @@ It keeps application logic thin by pushing authorization and row-level access in
 3. Start the server:
 
 ```bash
-cargo run -p eonbase-server
+cargo run -p evobase-server
 ```
 
 ## Example cURL
@@ -72,7 +72,7 @@ curl -X POST http://127.0.0.1:3000/messages/send \
   -d '{
     "to_user_id":"<target-user-id>",
     "event":"chat.message",
-    "payload":{"body":"hello from eonbase"}
+    "payload":{"body":"hello from evobase"}
   }'
 ```
 
@@ -112,13 +112,13 @@ curl -X POST http://127.0.0.1:3000/rest/public.notes \
 |   `-- migrations/
 |       `-- 0001_init.sql
 |-- crates/
-|   |-- eonbase-auth/
-|   |-- eonbase-core/
-|   |-- eonbase-db/
-|   |-- eonbase-gateway/
-|   `-- eonbase-messaging/
+|   |-- evobase-auth/
+|   |-- evobase-core/
+|   |-- evobase-db/
+|   |-- evobase-gateway/
+|   `-- evobase-messaging/
 `-- apps/
-    `-- eonbase-server/
+    `-- evobase-server/
 ```
 
 ## Architecture Diagrams

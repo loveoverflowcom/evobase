@@ -1,4 +1,4 @@
-use eonbase_core::{
+use evobase_core::{
     AppError, AppResult, Filter, FilterOperator, OrderBy, QualifiedTable, SelectList, TableDelete,
     TableInsert, TableSelect, TableUpdate, validate_identifier,
 };

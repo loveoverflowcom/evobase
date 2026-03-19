@@ -349,87 +349,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "eonbase-auth"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "async-trait",
- "eonbase-core",
- "jsonwebtoken",
- "rand_core",
- "serde",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "eonbase-core"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "dotenvy",
- "http",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "eonbase-db"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "eonbase-core",
- "serde_json",
- "sqlx",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "eonbase-gateway"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "axum",
- "eonbase-core",
- "futures-core",
- "serde",
- "serde_json",
- "tower-http",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "eonbase-messaging"
-version = "0.1.0"
-dependencies = [
- "eonbase-core",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "eonbase-server"
-version = "0.1.0"
-dependencies = [
- "axum",
- "eonbase-auth",
- "eonbase-core",
- "eonbase-db",
- "eonbase-gateway",
- "eonbase-messaging",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -465,6 +384,87 @@ dependencies = [
  "concurrent-queue",
  "parking",
  "pin-project-lite",
+]
+
+[[package]]
+name = "evobase-auth"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "async-trait",
+ "evobase-core",
+ "jsonwebtoken",
+ "rand_core",
+ "serde",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-core"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "dotenvy",
+ "http",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-db"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "evobase-core",
+ "serde_json",
+ "sqlx",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-gateway"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "axum",
+ "evobase-core",
+ "futures-core",
+ "serde",
+ "serde_json",
+ "tower-http",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-messaging"
+version = "0.1.0"
+dependencies = [
+ "evobase-core",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-server"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "evobase-auth",
+ "evobase-core",
+ "evobase-db",
+ "evobase-gateway",
+ "evobase-messaging",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

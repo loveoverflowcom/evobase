@@ -2,7 +2,7 @@
   "info": {
     "name": "EvoBase API",
     "_postman_id": "e1b7c7c2-evobase-collection",
-    "description": "Collection for EvoBase auth, notes, and messaging APIs",
+    "description": "Collection for EvoBase auth, docs, REST gateway, and SSE messaging APIs. Login/Register requests automatically save tokens into the active Postman environment.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,9 +13,37 @@
     { "key": "refresh_token", "value": "" },
     { "key": "notification_token", "value": "" },
     { "key": "user_id", "value": "" },
-    { "key": "note_id", "value": "" }
+    { "key": "target_user_id", "value": "" },
+    { "key": "note_id", "value": "" },
+    { "key": "table_name", "value": "public.notes" }
   ],
   "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/healthz"
+          }
+        },
+        {
+          "name": "List Docs",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/docs"
+          }
+        },
+        {
+          "name": "Get Table Docs",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/docs/{{table_name}}"
+          }
+        }
+      ]
+    },
     {
       "name": "Auth",
       "item": [
@@ -28,8 +56,27 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Dang ky user moi va luu bo token vao environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
             }
-          }
+          ]
         },
         {
           "name": "Login",
@@ -40,7 +87,8 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
-            }
+            },
+            "description": "Dang nhap va luu access/refresh/notification token vao environment."
           },
           "event": [
             {
@@ -66,13 +114,32 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "description": "Lam moi bo token tu refresh token hien tai."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
             }
-          }
+          ]
         }
       ]
     },
     {
-      "name": "Notes",
+      "name": "REST Gateway",
       "item": [
         {
           "name": "Create Note",
@@ -86,7 +153,8 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"owner_id\": \"{{user_id}}\",\n  \"body\": \"hello from evobase\"\n}"
-            }
+            },
+            "description": "Tao note thong qua REST gateway, co RLS theo user dang dang nhap."
           },
           "event": [
             {
@@ -94,7 +162,9 @@
               "script": {
                 "exec": [
                   "const res = pm.response.json();",
-                  "pm.environment.set('note_id', res[0].id);"
+                  "if (Array.isArray(res) && res[0] && res[0].id) {",
+                  "  pm.environment.set('note_id', res[0].id);",
+                  "}"
                 ]
               }
             }
@@ -107,7 +177,18 @@
             "header": [
               { "key": "Authorization", "value": "Bearer {{access_token}}" }
             ],
-            "url": "{{base_url}}/rest/public.notes?select=id,body,created_at&order=created_at.desc&limit=10"
+            "url": "{{base_url}}/rest/public.notes?select=id,body,created_at&order=created_at.desc&limit=10",
+            "description": "Lay danh sach notes theo query syntax cua evobase."
+          }
+        },
+        {
+          "name": "Get Note By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.notes?select=id,body,created_at&id=eq.{{note_id}}"
           }
         },
         {
@@ -124,6 +205,16 @@
               "raw": "{\n  \"body\": \"updated body\"\n}"
             }
           }
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.notes?id=eq.{{note_id}}"
+          }
         }
       ]
     },
@@ -131,7 +222,26 @@
       "name": "Messaging",
       "item": [
         {
-          "name": "Send Message",
+          "name": "Open Events SSE (Query Token)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/events?token={{notification_token}}",
+            "description": "Mo SSE bang notification token qua query string. Response dau tien co event system.ready va replayed_messages."
+          }
+        },
+        {
+          "name": "Open Events SSE (Authorization Header)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{notification_token}}" }
+            ],
+            "url": "{{base_url}}/events",
+            "description": "Mo SSE bang Authorization header. Thuan tien hon cho mobile client."
+          }
+        },
+        {
+          "name": "Send Message To Self",
           "request": {
             "method": "POST",
             "header": [
@@ -141,8 +251,25 @@
             "url": "{{base_url}}/messages/send",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to_user_id\": \"{{user_id}}\",\n  \"event\": \"chat.message\",\n  \"payload\": {\n    \"body\": \"hello\"\n  }\n}"
-            }
+              "raw": "{\n  \"to_user_id\": \"{{user_id}}\",\n  \"event\": \"chat.message\",\n  \"payload\": {\n    \"body\": \"hello from evobase\",\n    \"source\": \"postman-self\"\n  }\n}"
+            },
+            "description": "Neu SSE dang mo, delivered_connections > 0. Neu khong, queued_messages = 1."
+          }
+        },
+        {
+          "name": "Send Message To Target User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"chat.message\",\n  \"payload\": {\n    \"body\": \"queued until target user comes online\",\n    \"source\": \"postman-target\"\n  }\n}"
+            },
+            "description": "Dung de test relay offline. Dat target_user_id la user khac; neu user do chua online thi response se co queued_messages = 1."
           }
         }
       ]

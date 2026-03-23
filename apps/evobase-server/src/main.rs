@@ -17,7 +17,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let storage = Arc::new(PostgresStorage::connect(&config.database.url).await?);
     let auth_service = Arc::new(JwtAuthService::new(storage.clone(), config.tokens.clone()));
     let messaging_service = Arc::new(InMemoryMessagingHub::default());
-    let state = AppState::new(auth_service, messaging_service, storage);
+    let state = AppState::new(
+        auth_service,
+        messaging_service,
+        storage,
+        config.admin.token.clone(),
+    );
     let router = build_router(state);
 
     let listener = TcpListener::bind(config.server.addr).await?;

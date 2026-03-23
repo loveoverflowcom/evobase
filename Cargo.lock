@@ -433,6 +433,7 @@ dependencies = [
  "async-stream",
  "axum",
  "evobase-core",
+ "evobase-protocol",
  "futures-core",
  "serde",
  "serde_json",
@@ -450,6 +451,16 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "evobase-protocol"
+version = "0.1.0"
+dependencies = [
+ "evobase-core",
+ "serde",
+ "serde_json",
  "uuid",
 ]
 

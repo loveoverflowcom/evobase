@@ -6,6 +6,7 @@ members = [
     "crates/evobase-db",
     "crates/evobase-gateway",
     "crates/evobase-messaging",
+    "crates/evobase-protocol",
 ]
 resolver = "2"
 

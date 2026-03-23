@@ -30,7 +30,27 @@ pub async fn require_access_token(
     Ok(next.run(request).await)
 }
 
-pub(crate) fn extract_bearer_token(header: &str) -> Result<&str, AppError> {
+pub async fn require_admin_token(
+    State(state): State<AppState>,
+    request: Request<Body>,
+    next: Next,
+) -> Result<Response, ApiError> {
+    let header = request
+        .headers()
+        .get(AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    let token = extract_bearer_token(header)?;
+
+    if token != state.admin_token {
+        return Err(ApiError(AppError::Unauthorized));
+    }
+
+    Ok(next.run(request).await)
+}
+
+pub fn extract_bearer_token(header: &str) -> Result<&str, AppError> {
     let Some(token) = header.strip_prefix("Bearer ") else {
         return Err(AppError::Unauthorized);
     };

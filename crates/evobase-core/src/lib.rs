@@ -10,7 +10,7 @@ pub use auth::{
     AuthContext, AuthResponse, AuthService, Credentials, LoginRequest, RefreshRequest,
     RegisterRequest, TokenBundle, TokenClaims,
 };
-pub use config::{AppConfig, DatabaseConfig, ServerConfig, TokenConfig};
+pub use config::{AdminConfig, AppConfig, DatabaseConfig, ServerConfig, TokenConfig};
 pub use docs::{ApiDocs, ColumnDoc, QueryDoc, RlsDoc, RlsPolicyDoc, TableDoc, TableMethods};
 pub use error::{AppError, AppResult};
 pub use messaging::{

@@ -7,6 +7,7 @@ pub struct AppConfig {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
     pub tokens: TokenConfig,
+    pub admin: AdminConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -27,6 +28,11 @@ pub struct TokenConfig {
     pub access_ttl_secs: u64,
     pub refresh_ttl_secs: u64,
     pub notification_ttl_secs: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct AdminConfig {
+    pub token: String,
 }
 
 impl AppConfig {
@@ -50,6 +56,9 @@ impl AppConfig {
                     .unwrap_or(60 * 60 * 24 * 30),
                 notification_ttl_secs: env_optional_parse("NOTIFICATION_TOKEN_TTL_SECS")?
                     .unwrap_or(60 * 60 * 24 * 30),
+            },
+            admin: AdminConfig {
+                token: env_required("ADMIN_TOKEN")?,
             },
         })
     }

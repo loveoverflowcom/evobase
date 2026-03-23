@@ -3,17 +3,12 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use evobase_core::AppError;
-use serde::Serialize;
+use evobase_protocol::ErrorEnvelope;
 
 pub type ApiResult<T> = Result<T, ApiError>;
 
 #[derive(Debug)]
 pub struct ApiError(pub AppError);
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
 
 impl From<AppError> for ApiError {
     fn from(value: AppError) -> Self {
@@ -24,10 +19,26 @@ impl From<AppError> for ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let status = self.0.status_code();
-        let body = Json(ErrorBody {
-            error: self.0.public_message(),
+        let body = Json(ErrorEnvelope {
+            error: evobase_protocol::ErrorDetail {
+                code: error_code(&self.0),
+                message: self.0.public_message(),
+                field: None,
+            },
         });
 
         (status, body).into_response()
+    }
+}
+
+fn error_code(error: &AppError) -> &'static str {
+    match error {
+        AppError::Config(_) => "config_error",
+        AppError::BadRequest(_) => "bad_request",
+        AppError::Unauthorized => "unauthorized",
+        AppError::NotFound(_) => "not_found",
+        AppError::Conflict(_) => "conflict",
+        AppError::Database(_) => "database_error",
+        AppError::Internal(_) => "internal_error",
     }
 }

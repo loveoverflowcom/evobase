@@ -1,4 +1,5 @@
 mod error;
+mod handlers;
 mod middleware;
 mod rest;
 mod routes;

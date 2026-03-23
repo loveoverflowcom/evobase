@@ -18,3 +18,4 @@ url.workspace = true
 uuid.workspace = true
 
 evobase-core = { path = "../evobase-core" }
+evobase-protocol = { path = "../evobase-protocol" }

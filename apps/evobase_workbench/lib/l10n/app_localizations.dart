@@ -272,6 +272,198 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get okButton;
 
+  /// No description provided for @featureComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'This tool is next in line and will be added after the API Explorer flow.'**
+  String get featureComingSoon;
+
+  /// No description provided for @adminModeEnabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin token is active. Lab-only tools can call protected endpoints.'**
+  String get adminModeEnabledMessage;
+
+  /// No description provided for @adminModeDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an admin token to unlock lab-only tools and protected docs.'**
+  String get adminModeDisabledMessage;
+
+  /// No description provided for @apiExplorerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'API Docs Explorer'**
+  String get apiExplorerTitle;
+
+  /// No description provided for @apiExplorerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse schema, methods, query capabilities, and RLS policies from the live /docs endpoint.'**
+  String get apiExplorerSubtitle;
+
+  /// No description provided for @apiExplorerRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh docs'**
+  String get apiExplorerRefresh;
+
+  /// No description provided for @apiExplorerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by schema, table, endpoint, or column'**
+  String get apiExplorerSearchHint;
+
+  /// No description provided for @apiExplorerTablesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Tables'**
+  String get apiExplorerTablesCount;
+
+  /// No description provided for @apiExplorerColumnsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get apiExplorerColumnsCount;
+
+  /// No description provided for @apiExplorerSelectableColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Selectable columns'**
+  String get apiExplorerSelectableColumns;
+
+  /// No description provided for @apiExplorerFilterOperators.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter operators'**
+  String get apiExplorerFilterOperators;
+
+  /// No description provided for @apiExplorerQueryCapabilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Query capabilities'**
+  String get apiExplorerQueryCapabilities;
+
+  /// No description provided for @apiExplorerMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Methods'**
+  String get apiExplorerMethods;
+
+  /// No description provided for @apiExplorerColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get apiExplorerColumns;
+
+  /// No description provided for @apiExplorerRlsPolicies.
+  ///
+  /// In en, this message translates to:
+  /// **'RLS policies'**
+  String get apiExplorerRlsPolicies;
+
+  /// No description provided for @apiExplorerEndpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoint'**
+  String get apiExplorerEndpoint;
+
+  /// No description provided for @apiExplorerSchema.
+  ///
+  /// In en, this message translates to:
+  /// **'Schema'**
+  String get apiExplorerSchema;
+
+  /// No description provided for @apiExplorerTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get apiExplorerTable;
+
+  /// No description provided for @apiExplorerNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No tables match the current search.'**
+  String get apiExplorerNoResults;
+
+  /// No description provided for @apiExplorerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No documentation available'**
+  String get apiExplorerEmptyTitle;
+
+  /// No description provided for @apiExplorerEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The /docs endpoint returned no tables.'**
+  String get apiExplorerEmptySubtitle;
+
+  /// No description provided for @apiExplorerSelectTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a table to inspect its documentation.'**
+  String get apiExplorerSelectTable;
+
+  /// No description provided for @apiExplorerAdminRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin mode is required'**
+  String get apiExplorerAdminRequiredTitle;
+
+  /// No description provided for @apiExplorerAdminRequiredSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The docs explorer reads protected admin endpoints. Add the admin token to continue.'**
+  String get apiExplorerAdminRequiredSubtitle;
+
+  /// No description provided for @apiExplorerColumnsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No columns were returned for this table.'**
+  String get apiExplorerColumnsEmpty;
+
+  /// No description provided for @apiExplorerPoliciesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No RLS policies are defined for this table.'**
+  String get apiExplorerPoliciesEmpty;
+
+  /// No description provided for @apiExplorerRlsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'RLS enabled'**
+  String get apiExplorerRlsEnabled;
+
+  /// No description provided for @apiExplorerRlsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'RLS disabled'**
+  String get apiExplorerRlsDisabled;
+
+  /// No description provided for @apiExplorerOrderSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering'**
+  String get apiExplorerOrderSupported;
+
+  /// No description provided for @apiExplorerLimitSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get apiExplorerLimitSupported;
+
+  /// No description provided for @apiExplorerOffsetSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Offset'**
+  String get apiExplorerOffsetSupported;
+
+  /// No description provided for @apiExplorerSampleRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample request'**
+  String get apiExplorerSampleRequest;
+
   /// No description provided for @loadingLabel.
   ///
   /// In en, this message translates to:

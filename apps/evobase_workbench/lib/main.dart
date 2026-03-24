@@ -95,7 +95,7 @@ class EvobaseWorkbench extends StatelessWidget {
                 useMaterial3: true,
               ),
               themeMode: themeMode,
-              home: const AuthGate(),
+              home: AuthGate(docsApi: docsApi),
             );
           },
         ),
@@ -105,7 +105,9 @@ class EvobaseWorkbench extends StatelessWidget {
 }
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final DocsApi docsApi;
+
+  const AuthGate({super.key, required this.docsApi});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +122,7 @@ class AuthGate extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case authenticated:
-            return const HomePage();
+            return HomePage(docsApi: docsApi);
           case unauthenticated:
           case error:
             return const LoginPage();

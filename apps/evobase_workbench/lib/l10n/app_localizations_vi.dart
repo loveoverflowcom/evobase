@@ -97,6 +97,113 @@ class AppLocalizationsVi extends AppLocalizations {
   String get okButton => 'OK';
 
   @override
+  String get featureComingSoon =>
+      'Công cụ này sẽ được bổ sung tiếp sau khi hoàn thiện luồng API Explorer.';
+
+  @override
+  String get adminModeEnabledMessage =>
+      'Admin token đang hoạt động. Các công cụ lab có thể gọi endpoint được bảo vệ.';
+
+  @override
+  String get adminModeDisabledMessage =>
+      'Thêm admin token để mở khóa các công cụ lab và docs được bảo vệ.';
+
+  @override
+  String get apiExplorerTitle => 'API Docs Explorer';
+
+  @override
+  String get apiExplorerSubtitle =>
+      'Duyệt schema, methods, khả năng query và chính sách RLS từ endpoint /docs đang chạy.';
+
+  @override
+  String get apiExplorerRefresh => 'Tải lại docs';
+
+  @override
+  String get apiExplorerSearchHint =>
+      'Tìm theo schema, table, endpoint hoặc column';
+
+  @override
+  String get apiExplorerTablesCount => 'Bảng';
+
+  @override
+  String get apiExplorerColumnsCount => 'Cột';
+
+  @override
+  String get apiExplorerSelectableColumns => 'Cột có thể select';
+
+  @override
+  String get apiExplorerFilterOperators => 'Toán tử filter';
+
+  @override
+  String get apiExplorerQueryCapabilities => 'Khả năng query';
+
+  @override
+  String get apiExplorerMethods => 'Methods';
+
+  @override
+  String get apiExplorerColumns => 'Cột';
+
+  @override
+  String get apiExplorerRlsPolicies => 'Chính sách RLS';
+
+  @override
+  String get apiExplorerEndpoint => 'Endpoint';
+
+  @override
+  String get apiExplorerSchema => 'Schema';
+
+  @override
+  String get apiExplorerTable => 'Table';
+
+  @override
+  String get apiExplorerNoResults =>
+      'Không có bảng nào khớp với từ khóa hiện tại.';
+
+  @override
+  String get apiExplorerEmptyTitle => 'Chưa có tài liệu API';
+
+  @override
+  String get apiExplorerEmptySubtitle =>
+      'Endpoint /docs không trả về bảng nào.';
+
+  @override
+  String get apiExplorerSelectTable =>
+      'Chọn một bảng để xem tài liệu chi tiết.';
+
+  @override
+  String get apiExplorerAdminRequiredTitle => 'Cần bật admin mode';
+
+  @override
+  String get apiExplorerAdminRequiredSubtitle =>
+      'Docs explorer đọc các admin endpoint được bảo vệ. Hãy thêm admin token để tiếp tục.';
+
+  @override
+  String get apiExplorerColumnsEmpty =>
+      'Không có cột nào được trả về cho bảng này.';
+
+  @override
+  String get apiExplorerPoliciesEmpty =>
+      'Không có chính sách RLS nào cho bảng này.';
+
+  @override
+  String get apiExplorerRlsEnabled => 'RLS đang bật';
+
+  @override
+  String get apiExplorerRlsDisabled => 'RLS đang tắt';
+
+  @override
+  String get apiExplorerOrderSupported => 'Sắp xếp';
+
+  @override
+  String get apiExplorerLimitSupported => 'Giới hạn';
+
+  @override
+  String get apiExplorerOffsetSupported => 'Độ lệch';
+
+  @override
+  String get apiExplorerSampleRequest => 'Request mẫu';
+
+  @override
   String get loadingLabel => 'Đang tải...';
 
   @override

@@ -97,6 +97,112 @@ class AppLocalizationsEn extends AppLocalizations {
   String get okButton => 'OK';
 
   @override
+  String get featureComingSoon =>
+      'This tool is next in line and will be added after the API Explorer flow.';
+
+  @override
+  String get adminModeEnabledMessage =>
+      'Admin token is active. Lab-only tools can call protected endpoints.';
+
+  @override
+  String get adminModeDisabledMessage =>
+      'Add an admin token to unlock lab-only tools and protected docs.';
+
+  @override
+  String get apiExplorerTitle => 'API Docs Explorer';
+
+  @override
+  String get apiExplorerSubtitle =>
+      'Browse schema, methods, query capabilities, and RLS policies from the live /docs endpoint.';
+
+  @override
+  String get apiExplorerRefresh => 'Refresh docs';
+
+  @override
+  String get apiExplorerSearchHint =>
+      'Search by schema, table, endpoint, or column';
+
+  @override
+  String get apiExplorerTablesCount => 'Tables';
+
+  @override
+  String get apiExplorerColumnsCount => 'Columns';
+
+  @override
+  String get apiExplorerSelectableColumns => 'Selectable columns';
+
+  @override
+  String get apiExplorerFilterOperators => 'Filter operators';
+
+  @override
+  String get apiExplorerQueryCapabilities => 'Query capabilities';
+
+  @override
+  String get apiExplorerMethods => 'Methods';
+
+  @override
+  String get apiExplorerColumns => 'Columns';
+
+  @override
+  String get apiExplorerRlsPolicies => 'RLS policies';
+
+  @override
+  String get apiExplorerEndpoint => 'Endpoint';
+
+  @override
+  String get apiExplorerSchema => 'Schema';
+
+  @override
+  String get apiExplorerTable => 'Table';
+
+  @override
+  String get apiExplorerNoResults => 'No tables match the current search.';
+
+  @override
+  String get apiExplorerEmptyTitle => 'No documentation available';
+
+  @override
+  String get apiExplorerEmptySubtitle =>
+      'The /docs endpoint returned no tables.';
+
+  @override
+  String get apiExplorerSelectTable =>
+      'Select a table to inspect its documentation.';
+
+  @override
+  String get apiExplorerAdminRequiredTitle => 'Admin mode is required';
+
+  @override
+  String get apiExplorerAdminRequiredSubtitle =>
+      'The docs explorer reads protected admin endpoints. Add the admin token to continue.';
+
+  @override
+  String get apiExplorerColumnsEmpty =>
+      'No columns were returned for this table.';
+
+  @override
+  String get apiExplorerPoliciesEmpty =>
+      'No RLS policies are defined for this table.';
+
+  @override
+  String get apiExplorerRlsEnabled => 'RLS enabled';
+
+  @override
+  String get apiExplorerRlsDisabled => 'RLS disabled';
+
+  @override
+  String get apiExplorerOrderSupported => 'Ordering';
+
+  @override
+  String get apiExplorerLimitSupported => 'Limit';
+
+  @override
+  String get apiExplorerOffsetSupported => 'Offset';
+
+  @override
+  String get apiExplorerSampleRequest => 'Sample request';
+
+  @override
   String get loadingLabel => 'Loading...';
 
   @override

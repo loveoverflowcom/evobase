@@ -9,6 +9,8 @@ import 'package:logger/logger.dart';
 import '../models.dart' show ApiResponse, ErrorDetail, ErrorEnvelope;
 import 'api_error.dart';
 
+enum AuthHeaderMode { accessToken, adminToken, none }
+
 /// Base API client for all HTTP communication.
 ///
 /// Handles:
@@ -58,12 +60,14 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
+    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
       'GET',
       path,
       queryParameters: queryParameters,
+      authHeaderMode: authHeaderMode,
       fromJson: fromJson,
     );
   }
@@ -73,6 +77,7 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -80,6 +85,7 @@ class ApiClient {
       path,
       data: data,
       queryParameters: queryParameters,
+      authHeaderMode: authHeaderMode,
       fromJson: fromJson,
     );
   }
@@ -89,6 +95,7 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -96,6 +103,7 @@ class ApiClient {
       path,
       data: data,
       queryParameters: queryParameters,
+      authHeaderMode: authHeaderMode,
       fromJson: fromJson,
     );
   }
@@ -104,12 +112,14 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> delete<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
+    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
       'DELETE',
       path,
       queryParameters: queryParameters,
+      authHeaderMode: authHeaderMode,
       fromJson: fromJson,
     );
   }
@@ -119,11 +129,16 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return TaskEither.tryCatch(() async {
       final request = http.Request(method, _buildUri(path, queryParameters));
-      _applyHeaders(request.headers, hasBody: data != null);
+      _applyHeaders(
+        request.headers,
+        hasBody: data != null,
+        authHeaderMode: authHeaderMode,
+      );
 
       if (data != null) {
         request.body = jsonEncode(data);
@@ -163,19 +178,29 @@ class ApiClient {
     );
   }
 
-  void _applyHeaders(Map<String, String> headers, {required bool hasBody}) {
+  void _applyHeaders(
+    Map<String, String> headers, {
+    required bool hasBody,
+    required AuthHeaderMode authHeaderMode,
+  }) {
     headers['Accept'] = 'application/json';
 
     if (hasBody) {
       headers['Content-Type'] = 'application/json';
     }
 
-    if (_accessToken != null) {
-      headers['Authorization'] = 'Bearer $_accessToken';
-    }
-
-    if (_adminToken != null && _adminToken!.isNotEmpty) {
-      headers['X-Admin-Token'] = _adminToken!;
+    switch (authHeaderMode) {
+      case AuthHeaderMode.accessToken:
+        if (_accessToken != null && _accessToken!.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $_accessToken';
+        }
+      case AuthHeaderMode.adminToken:
+        if (_adminToken != null && _adminToken!.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $_adminToken';
+          headers['X-Admin-Token'] = _adminToken!;
+        }
+      case AuthHeaderMode.none:
+        break;
     }
   }
 

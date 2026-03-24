@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 
-import '../core.dart' show ApiClient, ApiException;
+import '../core.dart' show ApiClient, ApiException, AuthHeaderMode;
 import '../models.dart' show ApiDocsDto;
 
 /// Docs API client
@@ -14,7 +14,11 @@ class DocsApi {
   /// Requires admin token
   TaskEither<ApiException, ApiDocsDto> getDocs() {
     return _client
-        .get<ApiDocsDto>('/docs', fromJson: (json) => ApiDocsDto.fromJson(json))
+        .get<ApiDocsDto>(
+          '/docs',
+          authHeaderMode: AuthHeaderMode.adminToken,
+          fromJson: (json) => ApiDocsDto.fromJson(json),
+        )
         .map((response) => response.data);
   }
 }

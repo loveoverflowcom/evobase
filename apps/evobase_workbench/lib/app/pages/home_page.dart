@@ -60,42 +60,53 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Row(
-        children: [
-          NavigationRail(
-            extended: true,
-            destinations: [
-              NavigationRailDestination(
-                icon: const Icon(Icons.dashboard),
-                label: Text(l10n.dashboard),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final useCompactRail = constraints.maxWidth < 1180;
+
+          return Row(
+            children: [
+              NavigationRail(
+                extended: !useCompactRail,
+                labelType: useCompactRail
+                    ? NavigationRailLabelType.none
+                    : null,
+                minWidth: 72,
+                minExtendedWidth: 220,
+                destinations: [
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.dashboard),
+                    label: Text(l10n.dashboard),
+                  ),
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.api),
+                    label: Text(l10n.apiExplorer),
+                  ),
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.security),
+                    label: Text(l10n.rlsTester),
+                  ),
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.monitor),
+                    label: Text(l10n.eventMonitor),
+                  ),
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.settings),
+                    label: Text(l10n.settings),
+                  ),
+                ],
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
               ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.api),
-                label: Text(l10n.apiExplorer),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.security),
-                label: Text(l10n.rlsTester),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.monitor),
-                label: Text(l10n.eventMonitor),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.settings),
-                label: Text(l10n.settings),
-              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(child: _buildContent(context)),
             ],
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: _buildContent(context)),
-        ],
+          );
+        },
       ),
     );
   }

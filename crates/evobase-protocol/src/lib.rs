@@ -1,9 +1,15 @@
-mod envelope;
 mod auth;
-mod rest;
+mod databases;
 mod docs;
+mod envelope;
+mod rest;
 
-pub use envelope::{ApiResponse, ErrorEnvelope, ErrorDetail, ResponseMeta};
-pub use auth::{RegisterRequest, LoginRequest, RefreshRequest, AuthResponseDto, TokenDto};
-pub use rest::{TableQueryParams, InsertBody, PatchBody};
+pub use auth::{AuthResponseDto, LoginRequest, RefreshRequest, RegisterRequest, TokenDto};
+pub use databases::{
+    BootstrapDatabaseRequestDto, BootstrapFailureStageDto, BootstrapSqlScriptDto,
+    DatabaseBootstrapFailureDto, DatabaseCatalogDto, DatabaseDto, DatabaseKindDto,
+    DatabaseStatusDto, ExistingDatabasePolicyDto,
+};
 pub use docs::{ApiDocsDto, TableDocDto};
+pub use envelope::{ApiResponse, ErrorDetail, ErrorEnvelope, ResponseMeta};
+pub use rest::{InsertBody, PatchBody, TableQueryParams};

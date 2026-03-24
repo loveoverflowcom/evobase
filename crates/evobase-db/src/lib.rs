@@ -1,3 +1,3 @@
 mod postgres;
 
-pub use postgres::PostgresStorage;
+pub use postgres::{PostgresDatabaseProvisioner, PostgresStorage};

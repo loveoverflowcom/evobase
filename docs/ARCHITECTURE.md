@@ -2,7 +2,7 @@
 
 ## Overview
 
-EvoBase is a Rust-based backend platform with clean separation between API layer and core business logic. The architecture follows a modular design with clear responsibilities for each crate.
+EvoBase is a Rust-based backend platform with clean separation between API layer and core business logic. The architecture now supports a default PostgreSQL database from `DATABASE_URL` plus additional runtime databases that admins can bootstrap from ordered SQL scripts.
 
 ## Module Structure
 
@@ -22,6 +22,7 @@ evobase-server
 Domain layer containing:
 - Trait definitions (`AuthService`, `StorageAdapter`, `MessagingService`)
 - Domain types (`TableSelect`, `TableInsert`, `QualifiedTable`)
+- Runtime database management (`DatabaseRegistry`, `DatabaseManager`, bootstrap request/result types)
 - Core error types (`AppError`, `AppResult`)
 - Configuration structs
 
@@ -42,7 +43,7 @@ HTTP gateway layer containing:
 - HTTP handlers (thin, no business logic)
 - Middleware (authentication, admin authorization)
 - Request parsing and response mapping
-- Application state management
+- Application state management, including default storage and runtime database manager
 
 **Structure**:
 ```
@@ -57,7 +58,8 @@ src/
     ├── mod.rs
     ├── auth.rs        # POST /auth/register, /login, /refresh
     ├── rest.rs        # CRUD operations on /rest/{table}
-    ├── docs.rs        # GET /docs, /docs/{table} (admin only)
+    ├── databases.rs   # /admin/databases bootstrap + catalog endpoints
+    ├── docs.rs        # Legacy default-database docs endpoints
     ├── health.rs      # GET /healthz
     └── messaging.rs   # GET /events, POST /messages/send
 ```
@@ -78,6 +80,7 @@ Database storage adapter implementation:
 - Row-level security (RLS) enforcement
 - Dynamic SQL query building
 - Schema introspection for API docs
+- PostgreSQL database bootstrap orchestration from admin SQL scripts
 
 **Dependencies**: `evobase-core`, `sqlx`
 
@@ -88,6 +91,31 @@ In-memory messaging hub implementation:
 - Connection lifecycle tracking
 
 **Dependencies**: `evobase-core`, `tokio`
+
+## Runtime Database Model
+
+EvoBase now keeps two layers of database wiring at runtime:
+
+- `storage: Arc<dyn StorageAdapter>` in `AppState`
+  Used by the existing auth and public REST flow. This remains bound to the default database from `DATABASE_URL` for backward compatibility.
+- `database_manager: Arc<DatabaseManager>` in `AppState`
+  Owns a `DatabaseRegistry` and resolves which database an admin/docs request should target.
+
+The registry distinguishes:
+
+- Default database
+  Booted during startup from `DATABASE_URL`, identified by `DATABASE_DEFAULT_ID` or `default`.
+- Bootstrapped runtime databases
+  Created through admin API requests, registered under a stable `database_id`, and stored in-memory for the lifetime of the server process.
+
+### Request Target Resolution
+
+- `GET /docs` and `GET /docs/{table}`
+  Always target the default database for backward compatibility.
+- `GET /admin/databases/{database_id}/docs...`
+  Target the database resolved by `database_id`.
+- Public `/rest/{table}` and auth endpoints
+  Continue to use only the default database.
 
 ## Request Flow
 
@@ -116,6 +144,27 @@ On Error:
 AppError → ApiError → ErrorEnvelope → JSON (4xx/5xx)
 ```
 
+## Bootstrap Flow
+
+Admin database bootstrap is handled by the database manager and PostgreSQL provisioner:
+
+1. Admin sends `POST /admin/databases` with `database_id`, PostgreSQL database name, metadata, and ordered SQL scripts.
+2. `DatabaseManager` validates the request and checks for registry conflicts.
+3. `PostgresDatabaseProvisioner` connects to `DATABASE_ADMIN_URL`.
+4. The provisioner creates the PostgreSQL database, or reuses it when the request explicitly sets `existing_database_policy=use_existing`.
+5. A new `PostgresStorage` is opened against the target database.
+6. SQL scripts are executed sequentially in request order.
+7. The manager runs schema introspection to confirm docs can be served.
+8. The registry stores the database as either:
+   - `ready`
+   - `bootstrap_failed`, including stage/message/script metadata
+
+### Failure Policy
+
+- Registry insertion is non-destructive: EvoBase does not auto-drop partially created databases on bootstrap failure.
+- A failed bootstrap is still registered with status metadata so the admin UI and API can inspect what happened.
+- Docs endpoints only resolve databases whose status is `ready`.
+
 ## API Endpoints
 
 ### Public Endpoints
@@ -138,6 +187,12 @@ POST   /messages/send              # Send message (requires auth)
 ```
 GET    /docs                       # List all table documentation
 GET    /docs/{table}               # Get specific table documentation
+GET    /admin/databases            # List runtime database catalog
+POST   /admin/databases            # Bootstrap/register a runtime database
+GET    /admin/databases/{id}       # Get database metadata + bootstrap status
+GET    /admin/databases/{id}/docs  # List table documentation for the target database
+GET    /admin/databases/{id}/docs/{table}
+                                 # Get table documentation for the target database
 ```
 
 ## Authentication & Authorization
@@ -150,7 +205,7 @@ GET    /docs/{table}               # Get specific table documentation
 
 ### Admin Authorization
 - Static admin token from `ADMIN_TOKEN` env var
-- Used for sensitive endpoints like API documentation
+- Used for sensitive endpoints like API documentation and runtime database bootstrap
 - Middleware: `require_admin_token`
 
 ## Configuration
@@ -160,6 +215,8 @@ Environment variables (see `.env.example`):
 ```bash
 SERVER_ADDR=0.0.0.0:3000
 DATABASE_URL=postgres://user:pass@localhost:5432/db
+DATABASE_ADMIN_URL=postgres://user:pass@localhost:5432/postgres
+DATABASE_DEFAULT_ID=default
 ACCESS_TOKEN_SECRET=...
 REFRESH_TOKEN_SECRET=...
 NOTIFICATION_TOKEN_SECRET=...
@@ -220,5 +277,6 @@ The architecture is designed to support:
 - Additional API modules (e.g., `evobase-admin-api` as separate crate)
 - Plugin system via trait implementations
 - Multiple storage backends (implement `StorageAdapter`)
+- Persistent database catalog storage beyond the current in-memory runtime registry
 - Alternative auth mechanisms (implement `AuthService`)
 - API versioning (add `/v2` prefix with new handlers)

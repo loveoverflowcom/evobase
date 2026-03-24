@@ -10,33 +10,36 @@ package "evobase-workspace" {
         [evobase-auth\nJWT + Argon2] as auth
         [evobase-messaging\nIn-memory SSE Hub] as messaging
         [evobase-db\nSqlx + Postgres Adapter] as db
-        [evobase-core\nTraits + Shared Types] as core
+        [evobase-core\nTraits + Shared Types\nDatabaseManager + Registry] as core
     }
 }
 
-database "PostgreSQL" as postgres {
-    folder "auth.users" as users
-    folder "public.notes" as notes
+database "PostgreSQL Server" as postgres {
+    folder "default database\n(DATABASE_URL)" as defaultdb
+    folder "runtime bootstrap db(s)" as runtimedb
     folder "RLS Policies" as rls
 }
 
 server --> gateway : build_router(state)
 server --> auth : JwtAuthService::new(...)
 server --> db : PostgresStorage::connect(...)
+server --> db : PostgresDatabaseProvisioner::new(...)
 server --> messaging : InMemoryMessagingHub::default()
 
 gateway ..> auth : verify access / notification token
 gateway ..> messaging : register SSE / send events
-gateway ..> db : REST CRUD forwarding
-gateway ..> core : AppState + DTOs
+gateway ..> db : default REST CRUD forwarding
+gateway ..> core : AppState + DTOs + DatabaseManager
 
 auth ..> db : load / create users
 auth ..> core : implements AuthService
 messaging ..> core : implements MessagingService
 db ..> core : implements StorageAdapter
 
-db <--> postgres : SQL + set_config(claims)
-postgres --> rls : enforce row visibility
-postgres --> users
-postgres --> notes
+db <--> defaultdb : auth + REST + docs
+db <--> runtimedb : bootstrap + docs
+db <--> postgres : admin connection\n(create database)
+defaultdb --> rls : enforce row visibility
+defaultdb --> postgres
+runtimedb --> postgres
 @enduml

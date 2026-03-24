@@ -1,7 +1,10 @@
 use serde::Serialize;
 
+use crate::DatabaseDto;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct ApiDocsDto {
+    pub database: DatabaseDto,
     pub tables: Vec<TableDocDto>,
 }
 
@@ -63,11 +66,9 @@ pub struct QueryDocDto {
     pub offset_supported: bool,
 }
 
-impl From<evobase_core::ApiDocs> for ApiDocsDto {
-    fn from(docs: evobase_core::ApiDocs) -> Self {
-        Self {
-            tables: docs.tables.into_iter().map(Into::into).collect(),
-        }
+impl ApiDocsDto {
+    pub fn new(database: DatabaseDto, tables: Vec<TableDocDto>) -> Self {
+        Self { database, tables }
     }
 }
 

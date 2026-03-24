@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod config;
+pub mod database;
 pub mod docs;
 pub mod error;
 pub mod messaging;
@@ -11,6 +12,11 @@ pub use auth::{
     RegisterRequest, TokenBundle, TokenClaims,
 };
 pub use config::{AdminConfig, AppConfig, DatabaseConfig, ServerConfig, TokenConfig};
+pub use database::{
+    BootstrapDatabaseRequest, BootstrapFailureStage, BootstrapSqlScript, DatabaseBootstrapFailure,
+    DatabaseKind, DatabaseManager, DatabaseProvisioner, DatabaseRegistry, DatabaseStatus,
+    ExistingDatabasePolicy, ManagedDatabase, ProvisionDatabaseOutcome, validate_database_id,
+};
 pub use docs::{ApiDocs, ColumnDoc, QueryDoc, RlsDoc, RlsPolicyDoc, TableDoc, TableMethods};
 pub use error::{AppError, AppResult};
 pub use messaging::{

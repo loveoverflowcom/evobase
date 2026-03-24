@@ -1,13 +1,16 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'databases.dart';
+
 part 'docs.g.dart';
 
 /// Mirror of evobase-protocol ApiDocsDto
 @JsonSerializable()
 class ApiDocsDto {
+  final DatabaseDto database;
   final List<TableDocDto> tables;
 
-  ApiDocsDto({required this.tables});
+  ApiDocsDto({required this.database, required this.tables});
 
   factory ApiDocsDto.fromJson(Map<String, dynamic> json) =>
       _$ApiDocsDtoFromJson(json);

@@ -1,11 +1,16 @@
-use axum::{Extension, Json, extract::{Path, RawQuery, State}};
+use axum::{
+    Extension, Json,
+    extract::{Path, RawQuery, State},
+};
 use evobase_core::AuthContext;
 use evobase_protocol::ApiResponse;
 use serde_json::Value;
 
 use crate::{
     ApiResult, AppState,
-    rest::{parse_delete_request, parse_insert_request, parse_select_request, parse_update_request},
+    rest::{
+        parse_delete_request, parse_insert_request, parse_select_request, parse_update_request,
+    },
 };
 
 pub async fn select_rows(

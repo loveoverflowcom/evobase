@@ -1,14 +1,18 @@
-use axum::{Json, extract::{Path, State}};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use evobase_core::{AppError, QualifiedTable};
-use evobase_protocol::{ApiDocsDto, ApiResponse, TableDocDto};
+use evobase_protocol::{ApiDocsDto, ApiResponse, DatabaseDto, TableDocDto};
 
 use crate::{ApiResult, AppState};
 
-pub async fn list_docs(
-    State(state): State<AppState>,
-) -> ApiResult<Json<ApiResponse<ApiDocsDto>>> {
-    let tables = state.storage.describe_tables(None).await?;
-    let dto = ApiDocsDto::from(evobase_core::ApiDocs { tables });
+pub async fn list_docs(State(state): State<AppState>) -> ApiResult<Json<ApiResponse<ApiDocsDto>>> {
+    let (database, tables) = state.database_manager.describe_tables(None, None).await?;
+    let dto = ApiDocsDto::new(
+        DatabaseDto::from_core(state.database_manager.default_database_id(), database),
+        tables.into_iter().map(TableDocDto::from).collect(),
+    );
     Ok(Json(ApiResponse::new(dto)))
 }
 
@@ -18,7 +22,10 @@ pub async fn get_table_docs(
 ) -> ApiResult<Json<ApiResponse<TableDocDto>>> {
     let table = QualifiedTable::parse(&table)?;
     let schema_was_specified = table.schema.is_some();
-    let mut tables = state.storage.describe_tables(Some(table)).await?;
+    let (_, mut tables) = state
+        .database_manager
+        .describe_tables(None, Some(table))
+        .await?;
 
     let table_doc = match tables.len() {
         0 => Err(AppError::NotFound("table docs not found".to_string())),

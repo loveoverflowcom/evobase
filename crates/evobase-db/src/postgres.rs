@@ -1,18 +1,27 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use async_trait::async_trait;
 use evobase_core::{
-    AppError, AppResult, AuthContext, ColumnDoc, Filter, FilterOperator, OrderBy, QualifiedTable,
-    QueryDoc, RlsDoc, RlsPolicyDoc, SelectList, StorageAdapter, TableDelete, TableDoc, TableInsert,
-    TableMethods, TableSelect, TableUpdate, UserRecord, quoted_identifier, validate_identifier,
+    AppError, AppResult, AuthContext, BootstrapDatabaseRequest, BootstrapFailureStage,
+    BootstrapSqlScript, ColumnDoc, DatabaseBootstrapFailure, DatabaseProvisioner,
+    ExistingDatabasePolicy, Filter, FilterOperator, OrderBy, ProvisionDatabaseOutcome,
+    QualifiedTable, QueryDoc, RlsDoc, RlsPolicyDoc, SelectList, StorageAdapter, TableDelete,
+    TableDoc, TableInsert, TableMethods, TableSelect, TableUpdate, UserRecord, quoted_identifier,
+    validate_identifier,
 };
 use serde_json::{Map, Value};
 use sqlx::{PgPool, Postgres, QueryBuilder, Transaction, postgres::PgPoolOptions};
-use tracing::debug;
+use tracing::{debug, warn};
+use url::Url;
 use uuid::Uuid;
 
 pub struct PostgresStorage {
     pool: PgPool,
+}
+
+#[derive(Debug, Clone)]
+pub struct PostgresDatabaseProvisioner {
+    admin_database_url: String,
 }
 
 #[derive(Debug, Clone)]
@@ -315,6 +324,165 @@ impl PostgresStorage {
 
         docs.retain(|table_doc| table_doc.methods.any());
         docs
+    }
+}
+
+impl PostgresDatabaseProvisioner {
+    pub fn new(admin_database_url: impl Into<String>) -> Self {
+        Self {
+            admin_database_url: admin_database_url.into(),
+        }
+    }
+
+    async fn connect_pool(database_url: &str) -> AppResult<PgPool> {
+        PgPoolOptions::new()
+            .max_connections(5)
+            .connect(database_url)
+            .await
+            .map_err(map_sqlx_error)
+    }
+
+    fn target_database_url(admin_database_url: &str, database_name: &str) -> AppResult<String> {
+        let mut url = Url::parse(admin_database_url)
+            .map_err(|error| AppError::Config(format!("invalid DATABASE_ADMIN_URL: {error}")))?;
+        url.set_path(&format!("/{database_name}"));
+        Ok(url.to_string())
+    }
+
+    async fn database_exists(pool: &PgPool, database_name: &str) -> AppResult<bool> {
+        sqlx::query_scalar::<_, bool>("select exists(select 1 from pg_database where datname = $1)")
+            .bind(database_name)
+            .fetch_one(pool)
+            .await
+            .map_err(map_sqlx_error)
+    }
+
+    async fn create_database(pool: &PgPool, database_name: &str) -> AppResult<()> {
+        let statement = format!("create database {}", quoted_identifier(database_name));
+        sqlx::raw_sql(&statement)
+            .execute(pool)
+            .await
+            .map(|_| ())
+            .map_err(map_sqlx_error)
+    }
+
+    async fn execute_scripts(
+        pool: PgPool,
+        scripts: Vec<BootstrapSqlScript>,
+    ) -> Result<(), DatabaseBootstrapFailure> {
+        warn!(
+            script_count = scripts.len(),
+            "Executing bootstrap SQL scripts sequentially without an explicit transaction block"
+        );
+
+        for (index, script) in scripts.iter().enumerate() {
+            let sql = script.sql.clone();
+            if let Err(error) = sqlx::raw_sql(&sql).execute(&pool).await {
+                return Err(DatabaseBootstrapFailure {
+                    stage: BootstrapFailureStage::ExecuteScript,
+                    message: error.to_string(),
+                    script_name: Some(script.name.clone()),
+                    script_index: Some(index),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn provision_database_inner(
+        admin_database_url: String,
+        request: BootstrapDatabaseRequest,
+    ) -> AppResult<ProvisionDatabaseOutcome> {
+        let postgres_database = request.postgres_database.clone();
+        let scripts = request.scripts.clone();
+        let existing_database_policy = request.existing_database_policy;
+
+        let admin_pool = match Self::connect_pool(&admin_database_url).await {
+            Ok(pool) => pool,
+            Err(error) => {
+                return Ok(ProvisionDatabaseOutcome::Failed {
+                    failure: DatabaseBootstrapFailure {
+                        stage: BootstrapFailureStage::CreateDatabase,
+                        message: error.to_string(),
+                        script_name: None,
+                        script_index: None,
+                    },
+                });
+            }
+        };
+
+        let database_exists = match Self::database_exists(&admin_pool, &postgres_database).await {
+            Ok(exists) => exists,
+            Err(error) => {
+                return Ok(ProvisionDatabaseOutcome::Failed {
+                    failure: DatabaseBootstrapFailure {
+                        stage: BootstrapFailureStage::CreateDatabase,
+                        message: error.to_string(),
+                        script_name: None,
+                        script_index: None,
+                    },
+                });
+            }
+        };
+
+        if database_exists && existing_database_policy == ExistingDatabasePolicy::Fail {
+            return Err(AppError::Conflict(format!(
+                "postgres database `{}` already exists",
+                postgres_database
+            )));
+        }
+
+        if !database_exists {
+            if let Err(error) = Self::create_database(&admin_pool, &postgres_database).await {
+                return Ok(ProvisionDatabaseOutcome::Failed {
+                    failure: DatabaseBootstrapFailure {
+                        stage: BootstrapFailureStage::CreateDatabase,
+                        message: error.to_string(),
+                        script_name: None,
+                        script_index: None,
+                    },
+                });
+            }
+        }
+
+        let target_database_url =
+            Self::target_database_url(&admin_database_url, &postgres_database)?;
+        let concrete_storage = match PostgresStorage::connect(&target_database_url).await {
+            Ok(storage) => Arc::new(storage),
+            Err(error) => {
+                return Ok(ProvisionDatabaseOutcome::Failed {
+                    failure: DatabaseBootstrapFailure {
+                        stage: BootstrapFailureStage::ConnectDatabase,
+                        message: error.to_string(),
+                        script_name: None,
+                        script_index: None,
+                    },
+                });
+            }
+        };
+
+        if let Err(failure) = Self::execute_scripts(concrete_storage.pool.clone(), scripts).await {
+            return Ok(ProvisionDatabaseOutcome::Failed { failure });
+        }
+
+        let storage: Arc<dyn StorageAdapter> = concrete_storage;
+        Ok(ProvisionDatabaseOutcome::Ready { storage })
+    }
+}
+
+impl DatabaseProvisioner for PostgresDatabaseProvisioner {
+    fn provision_database(
+        &self,
+        request: &BootstrapDatabaseRequest,
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = AppResult<ProvisionDatabaseOutcome>> + Send>,
+    > {
+        let admin_database_url = self.admin_database_url.clone();
+        let request = request.clone();
+        Box::pin(async move {
+            PostgresDatabaseProvisioner::provision_database_inner(admin_database_url, request).await
+        })
     }
 }
 
@@ -687,7 +855,9 @@ fn map_sqlx_error(error: sqlx::Error) -> AppError {
 
 #[cfg(test)]
 mod tests {
-    use super::{ColumnRow, GrantRow, PolicyRow, PostgresStorage, RlsRow};
+    use super::{
+        ColumnRow, GrantRow, PolicyRow, PostgresDatabaseProvisioner, PostgresStorage, RlsRow,
+    };
 
     #[test]
     fn build_table_docs_combines_introspection_metadata() {
@@ -769,5 +939,19 @@ mod tests {
         );
 
         assert!(docs.is_empty());
+    }
+
+    #[test]
+    fn target_database_url_rewrites_database_name() {
+        let url = PostgresDatabaseProvisioner::target_database_url(
+            "postgres://postgres:postgres@localhost:5432/postgres",
+            "tenant_alpha",
+        )
+        .expect("url should be rewritten");
+
+        assert_eq!(
+            url,
+            "postgres://postgres:postgres@localhost:5432/tenant_alpha"
+        );
     }
 }

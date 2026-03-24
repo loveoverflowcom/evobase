@@ -60,7 +60,7 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -77,7 +77,7 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -95,7 +95,7 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -112,7 +112,7 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> delete<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return _send<T>(
@@ -129,7 +129,7 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
     required T Function(dynamic json) fromJson,
   }) {
     return TaskEither.tryCatch(() async {
@@ -190,16 +190,16 @@ class ApiClient {
     }
 
     switch (authHeaderMode) {
-      case AuthHeaderMode.accessToken:
+      case .accessToken:
         if (_accessToken != null && _accessToken!.isNotEmpty) {
           headers['Authorization'] = 'Bearer $_accessToken';
         }
-      case AuthHeaderMode.adminToken:
+      case .adminToken:
         if (_adminToken != null && _adminToken!.isNotEmpty) {
           headers['Authorization'] = 'Bearer $_adminToken';
           headers['X-Admin-Token'] = _adminToken!;
         }
-      case AuthHeaderMode.none:
+      case .none:
         break;
     }
   }
@@ -223,23 +223,32 @@ class ApiClient {
     required String body,
     required T Function(dynamic json) fromJson,
   }) {
-    final decoded = body.isEmpty ? null : jsonDecode(body);
+    try {
+      final decoded = body.isEmpty ? null : jsonDecode(body);
 
-    if (statusCode < 200 || statusCode >= 300) {
-      throw _toApiException(
-        statusCode: statusCode,
-        decodedBody: decoded,
-        rawBody: body,
+      if (statusCode < 200 || statusCode >= 300) {
+        throw _toApiException(
+          statusCode: statusCode,
+          decodedBody: decoded,
+          rawBody: body,
+        );
+      }
+
+      if (decoded is! Map<String, dynamic>) {
+        throw ApiException.fromErrorDetail(
+          ErrorDetail(code: 'PARSE_ERROR', message: 'Invalid response format'),
+        );
+      }
+
+      return ApiResponse<T>.fromJson(decoded, fromJson);
+    } catch (error, stackTrace) {
+      _logger.e(
+        'Failed to parse response (status: $statusCode)',
+        error: error,
+        stackTrace: stackTrace,
       );
+      rethrow;
     }
-
-    if (decoded is! Map<String, dynamic>) {
-      throw ApiException.fromErrorDetail(
-        ErrorDetail(code: 'PARSE_ERROR', message: 'Invalid response format'),
-      );
-    }
-
-    return ApiResponse<T>.fromJson(decoded, fromJson);
   }
 
   ApiException _toApiException({

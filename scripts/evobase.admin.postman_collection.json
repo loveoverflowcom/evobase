@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "EvoBase Admin API",
+    "_postman_id": "c2f3d2a1-evobase-admin-collection",
+    "description": "Collection for EvoBase admin APIs. All requests use Bearer admin token and can be used to inspect docs or bootstrap managed databases.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:3000" },
+    { "key": "username", "value": "alice" },
+    { "key": "password", "value": "super-secret-password" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "notification_token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "admin_token", "value": "admin-secret" },
+    { "key": "active_admin_token", "value": "" },
+    { "key": "database_id", "value": "todo_app" },
+    { "key": "postgres_database", "value": "evobase_todo_app" },
+    { "key": "table_name", "value": "public.todos" },
+    { "key": "script_name", "value": "0001_init.sql" },
+    {
+      "key": "bootstrap_sql",
+      "value": "create extension if not exists pgcrypto;\n\ncreate schema if not exists auth;\n\ncreate table if not exists auth.users (\n    id uuid primary key default gen_random_uuid(),\n    username text not null unique,\n    password_hash text not null,\n    created_at timestamptz not null default now()\n);\n\ncreate table if not exists public.todos (\n    id uuid primary key default gen_random_uuid(),\n    owner_id uuid not null references auth.users(id) on delete cascade,\n    title text not null,\n    description text not null default '',\n    is_completed boolean not null default false,\n    created_at timestamptz not null default now(),\n    updated_at timestamptz not null default now()\n);"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Dang ky user moi va luu token vao environment de test cac flow khac."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Dang nhap user va luu access, refresh, notification token vao environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "description": "Lam moi token tu refresh token hien tai."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Mode",
+      "item": [
+        {
+          "name": "Enable Admin Mode",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/healthz",
+            "description": "Request helper de bat admin mode trong Postman environment bang cach copy admin_token sang active_admin_token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set('active_admin_token', pm.environment.get('admin_token') || '');",
+                  "pm.test('Admin mode enabled', function () {",
+                  "  pm.expect(pm.environment.get('active_admin_token')).to.not.eql('');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disable Admin Mode",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/healthz",
+            "description": "Request helper de tat admin mode trong Postman environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set('active_admin_token', '');",
+                  "pm.test('Admin mode disabled', function () {",
+                  "  pm.expect(pm.environment.get('active_admin_token')).to.eql('');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Docs",
+      "item": [
+        {
+          "name": "List Default Database Docs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/docs",
+            "description": "Lay docs cua database mac dinh. Endpoint nay yeu cau admin token."
+          }
+        },
+        {
+          "name": "Get Default Database Table Docs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/docs/{{table_name}}",
+            "description": "Lay docs cua mot bang trong database mac dinh, vi du public.todos."
+          }
+        },
+        {
+          "name": "List Database Docs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/databases/{{database_id}}/docs",
+            "description": "Lay docs cua database da duoc bootstrap va quan ly boi EvoBase."
+          }
+        },
+        {
+          "name": "Get Database Table Docs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/databases/{{database_id}}/docs/{{table_name}}",
+            "description": "Lay docs cua mot bang cu the trong database duoc chi dinh."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Databases",
+      "item": [
+        {
+          "name": "List Databases",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/databases",
+            "description": "Lay danh sach database hien dang duoc EvoBase quan ly."
+          }
+        },
+        {
+          "name": "Get Database By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" }
+            ],
+            "url": "{{base_url}}/admin/databases/{{database_id}}",
+            "description": "Lay chi tiet metadata cua mot database theo database_id."
+          }
+        },
+        {
+          "name": "Bootstrap Database",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_admin_token}}" },
+              { "key": "X-Admin-Token", "value": "{{active_admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/admin/databases",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"database_id\": \"{{database_id}}\",\n  \"postgres_database\": \"{{postgres_database}}\",\n  \"description\": \"Todo app database\",\n  \"tags\": [\"todo\", \"demo\"],\n  \"owner\": \"admin\",\n  \"existing_database_policy\": \"use_existing\",\n  \"scripts\": [\n    {\n      \"name\": \"{{script_name}}\",\n      \"sql\": \"{{bootstrap_sql}}\"\n    }\n  ]\n}"
+            },
+            "description": "Bootstrap mot database moi bang cach gui danh sach SQL script. Collection nay dung bien bootstrap_sql de de test nhanh."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const data = res && res.data ? res.data : null;",
+                  "if (data && data.database_id) {",
+                  "  pm.environment.set('database_id', data.database_id);",
+                  "}",
+                  "if (data && data.postgres_database) {",
+                  "  pm.environment.set('postgres_database', data.postgres_database);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

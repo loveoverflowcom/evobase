@@ -1,34 +1,37 @@
-@startuml Evobase_Bootstrap_Sequence
+@startuml Evobase_Admin_Database_Bootstrap_Sequence
 !theme materia
 autonumber
 
-participant "main.rs" as Main
-participant "AppConfig" as Config
-participant "PostgresStorage" as Storage
-participant "JwtAuthService" as Auth
-participant "InMemoryMessagingHub" as Hub
-participant "AppState" as State
-participant "Gateway Router" as Router
-participant "Axum Server" as Axum
+actor "Admin" as Admin
+participant "Workbench / Admin Client" as Client
+participant "Gateway Handler" as Handler
+participant "DatabaseManager" as Manager
+participant "PostgresDatabaseProvisioner" as Provisioner
+database "PostgreSQL Admin DB\n(DATABASE_ADMIN_URL)" as AdminDb
+database "Target PostgreSQL DB" as TargetDb
 
-Main -> Config: from_env()
-Config -->> Main: server + database + token config
+Admin -> Client: Submit bootstrap form\n(database_id + SQL scripts)
+Client -> Handler: POST /admin/databases
+Handler -> Manager: bootstrap_database(request)
+Manager -> Manager: validate + reserve logical id
+Manager -> Provisioner: provision_database(request)
+Provisioner -> AdminDb: create database / verify existing
+Provisioner -> TargetDb: connect target database
+Provisioner -> TargetDb: execute SQL scripts in order
+Provisioner -->> Manager: storage handle or bootstrap failure
+Manager -> TargetDb: introspect schema via StorageAdapter
 
-Main -> Storage: connect(DATABASE_URL)
-Storage -->> Main: Arc<PostgresStorage>
-
-Main -> Auth: new(storage.clone(), token_config)
-Auth -->> Main: Arc<JwtAuthService>
-
-Main -> Hub: default()
-Hub -->> Main: Arc<InMemoryMessagingHub>
-
-Main -> State: new(auth_service, messaging_service, storage)
-State -->> Main: AppState
-
-Main -> Router: build_router(state)
-Router -->> Main: axum::Router
-
-Main -> Axum: bind(addr) + serve(listener, router)
-Axum -->> Main: graceful shutdown on SIGINT / SIGTERM
+alt Introspection succeeds
+    Manager -> Manager: register database as ready
+    Manager -->> Handler: ManagedDatabase(status=ready)
+    Handler -->> Client: 200 ApiResponse<DatabaseDto>
+    Client -> Handler: GET /admin/databases/{id}/docs
+    Handler -> Manager: describe_tables(id)
+    Manager -> TargetDb: introspect live schema
+    Handler -->> Client: ApiDocsDto
+else Any bootstrap stage fails
+    Manager -> Manager: register database as bootstrap_failed
+    Manager -->> Handler: ManagedDatabase(status=bootstrap_failed)
+    Handler -->> Client: 200 ApiResponse<DatabaseDto>
+end
 @enduml

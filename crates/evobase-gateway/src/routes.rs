@@ -1,7 +1,13 @@
-use axum::{Router, middleware, routing::{get, post}};
+use axum::{
+    Router, middleware,
+    routing::{get, post},
+};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
-use crate::{AppState, handlers, middleware::{require_access_token, require_admin_token}};
+use crate::{
+    AppState, handlers,
+    middleware::{require_access_token, require_admin_token},
+};
 
 pub fn build_router(state: AppState) -> Router {
     let protected = Router::new()
@@ -21,6 +27,22 @@ pub fn build_router(state: AppState) -> Router {
     let admin_protected = Router::new()
         .route("/docs", get(handlers::docs::list_docs))
         .route("/docs/{table}", get(handlers::docs::get_table_docs))
+        .route(
+            "/admin/databases",
+            get(handlers::databases::list_databases).post(handlers::databases::bootstrap_database),
+        )
+        .route(
+            "/admin/databases/{database_id}",
+            get(handlers::databases::get_database),
+        )
+        .route(
+            "/admin/databases/{database_id}/docs",
+            get(handlers::databases::list_database_docs),
+        )
+        .route(
+            "/admin/databases/{database_id}/docs/{table}",
+            get(handlers::databases::get_database_table_docs),
+        )
         .layer(middleware::from_fn_with_state(
             state.clone(),
             require_admin_token,

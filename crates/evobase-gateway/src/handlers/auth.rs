@@ -1,5 +1,7 @@
 use axum::{Json, extract::State};
-use evobase_protocol::{ApiResponse, AuthResponseDto, LoginRequest, RefreshRequest, RegisterRequest};
+use evobase_protocol::{
+    ApiResponse, AuthResponseDto, LoginRequest, RefreshRequest, RegisterRequest,
+};
 
 use crate::{ApiResult, AppState};
 

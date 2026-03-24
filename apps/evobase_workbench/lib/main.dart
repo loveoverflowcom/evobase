@@ -10,11 +10,13 @@ import 'client/auth.dart' show AuthManager, TokenStorage;
 import 'client/core.dart' show ApiClient;
 import 'config.dart' show AppConfig;
 import 'l10n.dart' show AppLocalizations;
+import 'theme.dart' show ThemeCubit, ThemeStorage;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final tokenStorage = await TokenStorage.create();
+  final themeStorage = await ThemeStorage.create();
   final apiClient = ApiClient(
     baseUrl: AppConfig.current.baseUrl,
     connectTimeout: AppConfig.current.connectTimeout,
@@ -37,6 +39,7 @@ void main() async {
       authApi: authApi,
       docsApi: docsApi,
       restApi: restApi,
+      themeStorage: themeStorage,
     ),
   );
 }
@@ -46,6 +49,7 @@ class EvobaseWorkbench extends StatelessWidget {
   final AuthApi authApi;
   final DocsApi docsApi;
   final RestApi restApi;
+  final ThemeStorage themeStorage;
 
   const EvobaseWorkbench({
     super.key,
@@ -53,39 +57,48 @@ class EvobaseWorkbench extends StatelessWidget {
     required this.authApi,
     required this.docsApi,
     required this.restApi,
+    required this.themeStorage,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          AuthBloc(authManager: authManager)..add(const AuthCheckRequested()),
-      child: MaterialApp(
-        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
+      create: (_) => ThemeCubit(themeStorage: themeStorage),
+      child: BlocProvider(
+        create: (context) =>
+            AuthBloc(authManager: authManager)..add(const AuthCheckRequested()),
+        child: BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            return MaterialApp(
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context)!.appTitle,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.blue,
+                  brightness: Brightness.light,
+                ),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.blue,
+                  brightness: Brightness.dark,
+                ),
+                useMaterial3: true,
+              ),
+              themeMode: themeMode,
+              home: const AuthGate(),
+            );
+          },
         ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        themeMode: ThemeMode.system,
-        home: const AuthGate(),
       ),
     );
   }
@@ -96,7 +109,7 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     const authenticated = AuthStatus.authenticated;
     const unauthenticated = AuthStatus.unauthenticated;
     const error = AuthStatus.error;

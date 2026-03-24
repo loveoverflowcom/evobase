@@ -28,5 +28,9 @@
   "cancelButton": "Cancel",
   "setButton": "Set",
   "okButton": "OK",
-  "loadingLabel": "Loading..."
+  "loadingLabel": "Loading...",
+  "themeModeButtonTooltip": "Theme mode",
+  "themeModeSystem": "System",
+  "themeModeLight": "Light",
+  "themeModeDark": "Dark"
 }

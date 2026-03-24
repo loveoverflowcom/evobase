@@ -28,5 +28,9 @@
   "cancelButton": "Hủy",
   "setButton": "Thiết lập",
   "okButton": "OK",
-  "loadingLabel": "Đang tải..."
+  "loadingLabel": "Đang tải...",
+  "themeModeButtonTooltip": "Chế độ giao diện",
+  "themeModeSystem": "Giống hệ thống",
+  "themeModeLight": "Sáng",
+  "themeModeDark": "Tối"
 }

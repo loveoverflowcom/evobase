@@ -1,9 +1,12 @@
-import 'package:flutter/widgets.dart';
-
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
+// ignore_for_file: type=lint
+
+/// The translations for Vietnamese (`vi`).
 class AppLocalizationsVi extends AppLocalizations {
-  AppLocalizationsVi() : super(const Locale('vi'));
+  AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
   String get appTitle => 'EvoBase Workbench';
@@ -95,4 +98,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loadingLabel => 'Đang tải...';
+
+  @override
+  String get themeModeButtonTooltip => 'Chế độ giao diện';
+
+  @override
+  String get themeModeSystem => 'Giống hệ thống';
+
+  @override
+  String get themeModeLight => 'Sáng';
+
+  @override
+  String get themeModeDark => 'Tối';
 }

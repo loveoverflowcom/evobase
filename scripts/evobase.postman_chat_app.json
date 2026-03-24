@@ -1,0 +1,622 @@
+{
+  "info": {
+    "name": "EvoBase Chat App API",
+    "_postman_id": "f4a1b2c3-evobase-chat-app",
+    "description": "Collection đầy đủ cho Chat App API trên EvoBase. Bao gồm Auth, Profiles, Contact Requests, Contacts, Messaging (SSE). Sau khi Login/Register, token được tự động lưu vào environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",            "value": "http://127.0.0.1:3000" },
+    { "key": "username",            "value": "alice" },
+    { "key": "password",            "value": "super-secret-password" },
+    { "key": "username_b",          "value": "bob" },
+    { "key": "password_b",          "value": "another-secret-password" },
+    { "key": "access_token",        "value": "" },
+    { "key": "refresh_token",       "value": "" },
+    { "key": "notification_token",  "value": "" },
+    { "key": "user_id",             "value": "" },
+    { "key": "target_user_id",      "value": "" },
+    { "key": "contact_request_id",  "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Đăng ký, đăng nhập, làm mới token. Token được tự động lưu vào environment sau mỗi request thành công.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Đăng ký tài khoản mới. Username phải là chữ thường, chỉ gồm [a-z0-9_], dài 3-32 ký tự. Trả về user_id và bộ 3 token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Đăng nhập và lấy bộ token. access_token dùng cho REST/Messaging, notification_token dùng cho SSE /events."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "description": "Làm mới bộ token từ refresh_token hiện tại. Trả về bộ token mới đầy đủ."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (res && res.tokens) {",
+                  "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                  "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                  "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                  "}",
+                  "if (res && res.user_id) {",
+                  "  pm.environment.set('user_id', res.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "description": "Quản lý profile người dùng. Mọi user đều có thể đọc profile của nhau (RLS: profiles_read_all). Chỉ chủ sở hữu mới cập nhật được profile của mình (RLS: profiles_update_self). user_id và username là bất biến (lock_profile_identity_fields trigger).",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles?user_id=eq.{{user_id}}&select=user_id,username,display_name,avatar_url,bio,updated_at",
+            "description": "Lấy profile của chính mình theo user_id."
+          }
+        },
+        {
+          "name": "Get Profile By Username",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles?username=eq.alice&select=user_id,username,display_name,avatar_url,bio",
+            "description": "Tìm profile theo username. Thay 'alice' bằng username cần tìm."
+          }
+        },
+        {
+          "name": "Get Profile By User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles?user_id=eq.{{target_user_id}}&select=user_id,username,display_name,avatar_url,bio",
+            "description": "Lấy profile của user khác theo user_id. Đặt target_user_id vào environment."
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles?user_id=eq.{{user_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Alice Nguyen\",\n  \"avatar_url\": \"https://example.com/avatar/alice.png\",\n  \"bio\": \"Flutter developer & coffee lover\"\n}"
+            },
+            "description": "Cập nhật display_name, avatar_url, bio. Không thể thay đổi user_id hoặc username (bị trigger lock_profile_identity_fields chặn)."
+          }
+        },
+        {
+          "name": "Search Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles?select=user_id,username,display_name,avatar_url&limit=20&offset=0",
+            "description": "Lấy danh sách profiles với phân trang. Thêm filter như username=like.ali% nếu cần tìm kiếm."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact Requests",
+      "description": "Quản lý lời mời kết bạn. RLS đảm bảo: chỉ người gửi/nhận mới thấy request của mình; chỉ người nhận mới accept/reject; chỉ người gửi mới xóa request đang pending. Unique index ngăn 2 user gửi request cho nhau đồng thời.",
+      "item": [
+        {
+          "name": "Send Contact Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_user\": \"{{user_id}}\",\n  \"to_user\": \"{{target_user_id}}\",\n  \"status\": \"pending\"\n}"
+            },
+            "description": "Gửi lời mời kết bạn tới target_user_id. RLS yêu cầu from_user = current user, status = 'pending', to_user ≠ from_user. Trả về record đã tạo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const envelope = pm.response.json();",
+                  "const res = envelope && envelope.data ? envelope.data : envelope;",
+                  "if (Array.isArray(res) && res[0] && res[0].id) {",
+                  "  pm.environment.set('contact_request_id', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Incoming Requests (Pending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests?to_user=eq.{{user_id}}&status=eq.pending&select=id,from_user,created_at&order=created_at.desc",
+            "description": "Lấy danh sách lời mời kết bạn đang chờ mà mình nhận được."
+          }
+        },
+        {
+          "name": "List Outgoing Requests (Pending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests?from_user=eq.{{user_id}}&status=eq.pending&select=id,to_user,created_at&order=created_at.desc",
+            "description": "Lấy danh sách lời mời kết bạn mình đã gửi đang chờ phản hồi."
+          }
+        },
+        {
+          "name": "List All My Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests?select=id,from_user,to_user,status,created_at&order=created_at.desc&limit=50",
+            "description": "Lấy tất cả contact requests liên quan đến mình (cả gửi lẫn nhận, mọi trạng thái). RLS tự lọc theo current user."
+          }
+        },
+        {
+          "name": "Accept Contact Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.rpc/accept_contact_request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"req_id\": \"{{contact_request_id}}\"\n}"
+            },
+            "description": "Chấp nhận lời mời kết bạn. Gọi function accept_contact_request(req_id) — tự động tạo 2 bản ghi trong public.contacts (cả 2 chiều) và cập nhật status = 'accepted'. Chỉ người nhận (to_user) mới gọi được."
+          }
+        },
+        {
+          "name": "Reject Contact Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.rpc/reject_contact_request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"req_id\": \"{{contact_request_id}}\"\n}"
+            },
+            "description": "Từ chối lời mời kết bạn. Cập nhật status = 'rejected'. Chỉ người nhận (to_user) mới gọi được."
+          }
+        },
+        {
+          "name": "Cancel Contact Request (Sender)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests?id=eq.{{contact_request_id}}&status=eq.pending",
+            "description": "Người gửi hủy lời mời đang pending. RLS contact_requests_delete_sender chỉ cho phép xóa khi from_user = current user và status = 'pending'."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "description": "Danh sách bạn bè. Mỗi cặp bạn bè có 2 bản ghi đối xứng (A→B và B→A). RLS contacts_select_own chỉ cho phép đọc các bản ghi có user_id = current user. Xóa contact dùng function remove_contact để xóa cả 2 chiều.",
+      "item": [
+        {
+          "name": "List My Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contacts?user_id=eq.{{user_id}}&select=contact_id,created_at&order=created_at.desc",
+            "description": "Lấy danh sách contact_id của mình. Join với public.profiles để lấy thêm thông tin nếu cần."
+          }
+        },
+        {
+          "name": "List My Contacts With Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contacts?user_id=eq.{{user_id}}&select=contact_id,created_at&order=created_at.desc&limit=100",
+            "description": "Lấy danh sách contacts. Sau đó dùng contact_id để query public.profiles để lấy username, display_name, avatar_url."
+          }
+        },
+        {
+          "name": "Check Is Contact",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contacts?user_id=eq.{{user_id}}&contact_id=eq.{{target_user_id}}&select=contact_id,created_at",
+            "description": "Kiểm tra xem target_user_id có phải là contact của mình không. Trả về mảng rỗng nếu chưa là bạn."
+          }
+        },
+        {
+          "name": "Remove Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/rest/public.rpc/remove_contact",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"other_user\": \"{{target_user_id}}\"\n}"
+            },
+            "description": "Xóa bạn bè. Gọi function remove_contact(other_user) — xóa cả 2 bản ghi đối xứng trong public.contacts. Không thể dùng DELETE trực tiếp vì RLS contacts_delete_self chỉ cho xóa bản ghi của chính mình (1 chiều)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messaging (SSE + Send)",
+      "description": "Real-time messaging qua Server-Sent Events. Dùng notification_token (không phải access_token) để mở SSE connection. Dùng access_token để gửi message. Message được deliver ngay nếu recipient đang online, hoặc queue lại nếu offline.",
+      "item": [
+        {
+          "name": "Open SSE Connection (Query Token)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/events?token={{notification_token}}",
+            "description": "Mở SSE stream bằng notification_token qua query string. Event đầu tiên là system.ready với danh sách replayed_messages (tin nhắn đã queue khi offline). Keep-alive ping mỗi 15 giây."
+          }
+        },
+        {
+          "name": "Open SSE Connection (Authorization Header)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{notification_token}}" }
+            ],
+            "url": "{{base_url}}/events",
+            "description": "Mở SSE stream bằng Authorization header. Phù hợp hơn cho mobile client. Cùng behavior với query token."
+          }
+        },
+        {
+          "name": "Send Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"chat.message\",\n  \"payload\": {\n    \"body\": \"Xin chào! Bạn có rảnh không?\",\n    \"from_user_id\": \"{{user_id}}\",\n    \"timestamp\": \"2026-03-24T10:00:00Z\"\n  }\n}"
+            },
+            "description": "Gửi tin nhắn chat tới target_user_id. Nếu recipient đang online (SSE mở), delivered_connections > 0. Nếu offline, queued_messages = 1 và sẽ được replay khi họ kết nối lại."
+          }
+        },
+        {
+          "name": "Send Typing Indicator",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"chat.typing\",\n  \"payload\": {\n    \"from_user_id\": \"{{user_id}}\",\n    \"is_typing\": true\n  }\n}"
+            },
+            "description": "Gửi trạng thái đang gõ. Dùng event 'chat.typing'. Thường không cần queue (ephemeral), nhưng server vẫn queue nếu recipient offline."
+          }
+        },
+        {
+          "name": "Send Read Receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"chat.read\",\n  \"payload\": {\n    \"from_user_id\": \"{{user_id}}\",\n    \"read_at\": \"2026-03-24T10:05:00Z\"\n  }\n}"
+            },
+            "description": "Gửi xác nhận đã đọc tin nhắn. Dùng event 'chat.read'."
+          }
+        },
+        {
+          "name": "Send Contact Request Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"contact.request\",\n  \"payload\": {\n    \"from_user_id\": \"{{user_id}}\",\n    \"request_id\": \"{{contact_request_id}}\"\n  }\n}"
+            },
+            "description": "Thông báo real-time khi gửi lời mời kết bạn. Gọi sau khi POST vào public.contact_requests thành công."
+          }
+        },
+        {
+          "name": "Send Contact Accepted Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/messages/send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"contact.accepted\",\n  \"payload\": {\n    \"from_user_id\": \"{{user_id}}\",\n    \"request_id\": \"{{contact_request_id}}\"\n  }\n}"
+            },
+            "description": "Thông báo real-time khi chấp nhận lời mời kết bạn. Gọi sau khi accept_contact_request thành công."
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "Health check và các endpoint hệ thống.",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/healthz",
+            "description": "Kiểm tra server đang chạy. Không cần auth."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Flows (Hướng dẫn)",
+      "description": "Các flow mẫu để test end-to-end. Chạy theo thứ tự các request trong từng folder.",
+      "item": [
+        {
+          "name": "Flow 1: Alice đăng ký và cập nhật profile",
+          "item": [
+            {
+              "name": "[1] Register Alice",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": "{{base_url}}/auth/register",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"super-secret-password\"\n}"
+                },
+                "description": "Đăng ký Alice. Token tự lưu vào environment."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const envelope = pm.response.json();",
+                      "const res = envelope && envelope.data ? envelope.data : envelope;",
+                      "if (res && res.tokens) {",
+                      "  pm.environment.set('access_token', res.tokens.access_token || '');",
+                      "  pm.environment.set('refresh_token', res.tokens.refresh_token || '');",
+                      "  pm.environment.set('notification_token', res.tokens.notification_token || '');",
+                      "}",
+                      "if (res && res.user_id) {",
+                      "  pm.environment.set('user_id', res.user_id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[2] Update Alice Profile",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": "{{base_url}}/rest/public.profiles?user_id=eq.{{user_id}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"display_name\": \"Alice Nguyen\",\n  \"bio\": \"Hello from EvoBase Chat!\"\n}"
+                }
+              }
+            },
+            {
+              "name": "[3] Get Alice Profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/rest/public.profiles?user_id=eq.{{user_id}}&select=user_id,username,display_name,bio,updated_at"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Flow 2: Alice gửi lời mời và Bob chấp nhận",
+          "description": "Cần đặt target_user_id = Bob's user_id vào environment trước khi chạy flow này.",
+          "item": [
+            {
+              "name": "[1] Alice gửi Contact Request tới Bob",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": "{{base_url}}/rest/public.contact_requests",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"from_user\": \"{{user_id}}\",\n  \"to_user\": \"{{target_user_id}}\",\n  \"status\": \"pending\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const envelope = pm.response.json();",
+                      "const res = envelope && envelope.data ? envelope.data : envelope;",
+                      "if (Array.isArray(res) && res[0] && res[0].id) {",
+                      "  pm.environment.set('contact_request_id', res[0].id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[2] Alice thông báo Bob qua SSE",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": "{{base_url}}/messages/send",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to_user_id\": \"{{target_user_id}}\",\n  \"event\": \"contact.request\",\n  \"payload\": {\n    \"from_user_id\": \"{{user_id}}\",\n    \"request_id\": \"{{contact_request_id}}\"\n  }\n}"
+                }
+              }
+            },
+            {
+              "name": "[3] Bob accept (đổi access_token sang Bob's token trước)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": "{{base_url}}/rest/public.rpc/accept_contact_request",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"req_id\": \"{{contact_request_id}}\"\n}"
+                },
+                "description": "Đổi access_token sang token của Bob trước khi gọi. Bob là to_user nên mới có quyền accept."
+              }
+            },
+            {
+              "name": "[4] Alice kiểm tra contacts",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
+                ],
+                "url": "{{base_url}}/rest/public.contacts?user_id=eq.{{user_id}}&select=contact_id,created_at",
+                "description": "Đổi lại access_token sang Alice's token. Bob phải xuất hiện trong danh sách."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

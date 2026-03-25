@@ -453,8 +453,8 @@ mod tests {
     };
     use crate::{
         AppError, AppResult, AuthContext, ColumnDoc, QualifiedTable, QueryDoc, RlsDoc,
-        StorageAdapter, TableDelete, TableDoc, TableInsert, TableMethods, TableSelect, TableUpdate,
-        UserRecord,
+        StorageAdapter, TableDelete, TableDetailFields, TableDoc, TableInsert, TableMethods,
+        TableSelect, TableUpdate, UserRecord,
     };
 
     struct FakeStorage {
@@ -489,6 +489,13 @@ mod tests {
             }
 
             Ok(self.docs.clone())
+        }
+
+        async fn describe_detail_fields(
+            &self,
+            _table: QualifiedTable,
+        ) -> AppResult<Vec<TableDetailFields>> {
+            Ok(Vec::new())
         }
 
         async fn select_rows(

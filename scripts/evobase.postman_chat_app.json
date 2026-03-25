@@ -159,6 +159,28 @@
           }
         },
         {
+          "name": "Get Profile Detail By PK",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles/{{target_user_id}}",
+            "description": "Detail endpoint mới theo primary key (user_id). Trả về 1 object hoặc 404."
+          }
+        },
+        {
+          "name": "Get Profile Detail By Username (Unique)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.profiles/by-username/{{username}}",
+            "description": "Detail endpoint mới theo unique field username. Trả về 1 object hoặc 404."
+          }
+        },
+        {
           "name": "Update My Profile",
           "request": {
             "method": "PATCH",
@@ -252,6 +274,17 @@
             ],
             "url": "{{base_url}}/rest/public.contact_requests?select=id,from_user,to_user,status,created_at&order=created_at.desc&limit=50",
             "description": "Lấy tất cả contact requests liên quan đến mình (cả gửi lẫn nhận, mọi trạng thái). RLS tự lọc theo current user."
+          }
+        },
+        {
+          "name": "Get Contact Request Detail By PK",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{base_url}}/rest/public.contact_requests/{{contact_request_id}}",
+            "description": "Detail endpoint mới theo primary key id. Trả về 1 object hoặc 404."
           }
         },
         {

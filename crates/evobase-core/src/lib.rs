@@ -26,4 +26,4 @@ pub use rest::{
     Filter, FilterOperator, OrderBy, QualifiedTable, SelectList, TableDelete, TableInsert,
     TableSelect, TableUpdate, quoted_identifier, validate_identifier,
 };
-pub use storage::{StorageAdapter, UserRecord};
+pub use storage::{StorageAdapter, TableDetailFields, UserRecord};

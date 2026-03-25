@@ -6,8 +6,8 @@ use evobase_core::{
     BootstrapSqlScript, ColumnDoc, DatabaseBootstrapFailure, DatabaseProvisioner,
     ExistingDatabasePolicy, Filter, FilterOperator, OrderBy, ProvisionDatabaseOutcome,
     QualifiedTable, QueryDoc, RlsDoc, RlsPolicyDoc, SelectList, StorageAdapter, TableDelete,
-    TableDoc, TableInsert, TableMethods, TableSelect, TableUpdate, UserRecord, quoted_identifier,
-    validate_identifier,
+    TableDetailFields, TableDoc, TableInsert, TableMethods, TableSelect, TableUpdate, UserRecord,
+    quoted_identifier, validate_identifier,
 };
 use serde_json::{Map, Value};
 use sqlx::{PgPool, Postgres, QueryBuilder, Transaction, postgres::PgPoolOptions};
@@ -56,6 +56,15 @@ struct PolicyRow {
     command: String,
     using_expr: Option<String>,
     with_check: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct ConstraintColumnRow {
+    schema: String,
+    table: String,
+    constraint_type: String,
+    column: String,
+    constraint_column_count: i64,
 }
 
 impl PostgresStorage {
@@ -324,6 +333,32 @@ impl PostgresStorage {
 
         docs.retain(|table_doc| table_doc.methods.any());
         docs
+    }
+
+    fn build_table_detail_fields(rows: Vec<ConstraintColumnRow>) -> Vec<TableDetailFields> {
+        let mut tables = BTreeMap::<(String, String), TableDetailFields>::new();
+
+        for row in rows {
+            let key = (row.schema.clone(), row.table.clone());
+            let table_fields = tables.entry(key).or_insert_with(|| TableDetailFields {
+                schema: row.schema.clone(),
+                table: row.table.clone(),
+                primary_key: Vec::new(),
+                unique_fields: Vec::new(),
+            });
+
+            match row.constraint_type.as_str() {
+                "PRIMARY KEY" => table_fields.primary_key.push(row.column),
+                "UNIQUE" if row.constraint_column_count == 1 => {
+                    if !table_fields.unique_fields.contains(&row.column) {
+                        table_fields.unique_fields.push(row.column);
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        tables.into_values().collect()
     }
 }
 
@@ -692,6 +727,53 @@ impl StorageAdapter for PostgresStorage {
         Ok(Self::build_table_docs(columns, grants, rls_rows, policies))
     }
 
+    async fn describe_detail_fields(
+        &self,
+        table: QualifiedTable,
+    ) -> AppResult<Vec<TableDetailFields>> {
+        let schema_filter = table.schema;
+        let table_filter = table.table;
+
+        let rows = sqlx::query_as::<_, (String, String, String, String, i64)>(
+            "select
+                tc.table_schema,
+                tc.table_name,
+                tc.constraint_type,
+                kcu.column_name,
+                count(*) over (partition by tc.constraint_schema, tc.constraint_name) as constraint_column_count
+             from information_schema.table_constraints tc
+             join information_schema.key_column_usage kcu
+               on tc.constraint_catalog = kcu.constraint_catalog
+              and tc.constraint_schema = kcu.constraint_schema
+              and tc.constraint_name = kcu.constraint_name
+             where tc.constraint_type in ('PRIMARY KEY', 'UNIQUE')
+               and tc.table_schema not in ('pg_catalog', 'information_schema')
+               and ($1::text is null or tc.table_schema = $1)
+               and tc.table_name = $2
+             order by tc.table_schema, tc.table_name, tc.constraint_name, kcu.ordinal_position",
+        )
+        .bind(schema_filter.as_deref())
+        .bind(&table_filter)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_sqlx_error)?
+        .into_iter()
+        .map(
+            |(schema, table, constraint_type, column, constraint_column_count)| {
+                ConstraintColumnRow {
+                    schema,
+                    table,
+                    constraint_type,
+                    column,
+                    constraint_column_count,
+                }
+            },
+        )
+        .collect();
+
+        Ok(Self::build_table_detail_fields(rows))
+    }
+
     async fn select_rows(
         &self,
         request: TableSelect,
@@ -856,7 +938,8 @@ fn map_sqlx_error(error: sqlx::Error) -> AppError {
 #[cfg(test)]
 mod tests {
     use super::{
-        ColumnRow, GrantRow, PolicyRow, PostgresDatabaseProvisioner, PostgresStorage, RlsRow,
+        ColumnRow, ConstraintColumnRow, GrantRow, PolicyRow, PostgresDatabaseProvisioner,
+        PostgresStorage, RlsRow,
     };
 
     #[test]
@@ -939,6 +1022,73 @@ mod tests {
         );
 
         assert!(docs.is_empty());
+    }
+
+    #[test]
+    fn build_table_detail_fields_extracts_primary_and_unique_columns() {
+        let fields = PostgresStorage::build_table_detail_fields(vec![
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "users".to_string(),
+                constraint_type: "PRIMARY KEY".to_string(),
+                column: "id".to_string(),
+                constraint_column_count: 1,
+            },
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "users".to_string(),
+                constraint_type: "UNIQUE".to_string(),
+                column: "username".to_string(),
+                constraint_column_count: 1,
+            },
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "users".to_string(),
+                constraint_type: "UNIQUE".to_string(),
+                column: "email".to_string(),
+                constraint_column_count: 1,
+            },
+        ]);
+
+        assert_eq!(fields.len(), 1);
+        assert_eq!(fields[0].schema, "public");
+        assert_eq!(fields[0].table, "users");
+        assert_eq!(fields[0].primary_key, vec!["id".to_string()]);
+        assert_eq!(
+            fields[0].unique_fields,
+            vec!["username".to_string(), "email".to_string()]
+        );
+    }
+
+    #[test]
+    fn build_table_detail_fields_ignores_composite_unique_constraints() {
+        let fields = PostgresStorage::build_table_detail_fields(vec![
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "contact_requests".to_string(),
+                constraint_type: "PRIMARY KEY".to_string(),
+                column: "id".to_string(),
+                constraint_column_count: 1,
+            },
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "contact_requests".to_string(),
+                constraint_type: "UNIQUE".to_string(),
+                column: "from_user".to_string(),
+                constraint_column_count: 2,
+            },
+            ConstraintColumnRow {
+                schema: "public".to_string(),
+                table: "contact_requests".to_string(),
+                constraint_type: "UNIQUE".to_string(),
+                column: "to_user".to_string(),
+                constraint_column_count: 2,
+            },
+        ]);
+
+        assert_eq!(fields.len(), 1);
+        assert_eq!(fields[0].primary_key, vec!["id".to_string()]);
+        assert!(fields[0].unique_fields.is_empty());
     }
 
     #[test]

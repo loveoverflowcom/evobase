@@ -13,12 +13,24 @@ pub struct UserRecord {
     pub password_hash: String,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct TableDetailFields {
+    pub schema: String,
+    pub table: String,
+    pub primary_key: Vec<String>,
+    pub unique_fields: Vec<String>,
+}
+
 #[async_trait]
 pub trait StorageAdapter: Send + Sync {
     async fn create_user(&self, username: &str, password_hash: &str) -> AppResult<UserRecord>;
     async fn find_user_by_username(&self, username: &str) -> AppResult<Option<UserRecord>>;
     async fn find_user_by_id(&self, user_id: Uuid) -> AppResult<Option<UserRecord>>;
     async fn describe_tables(&self, table: Option<QualifiedTable>) -> AppResult<Vec<TableDoc>>;
+    async fn describe_detail_fields(
+        &self,
+        table: QualifiedTable,
+    ) -> AppResult<Vec<TableDetailFields>>;
     async fn select_rows(
         &self,
         request: TableSelect,

@@ -19,6 +19,14 @@ pub fn build_router(state: AppState) -> Router {
                 .patch(handlers::rest::update_rows)
                 .delete(handlers::rest::delete_rows),
         )
+        .route(
+            "/rest/{table}/{value}",
+            get(handlers::rest::select_row_by_primary_key),
+        )
+        .route(
+            "/rest/{table}/{lookup}/{value}",
+            get(handlers::rest::select_row_by_unique_field),
+        )
         .layer(middleware::from_fn_with_state(
             state.clone(),
             require_access_token,

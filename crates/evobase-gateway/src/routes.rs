@@ -62,6 +62,14 @@ pub fn build_router(state: AppState) -> Router {
         .route("/auth/login", post(handlers::auth::login))
         .route("/auth/refresh", post(handlers::auth::refresh))
         .route("/events", get(handlers::messaging::events))
+        .route(
+            "/evobase_messaging/publish",
+            post(handlers::topic_messaging::publish),
+        )
+        .route(
+            "/evobase_messaging/subscribe",
+            get(handlers::topic_messaging::subscribe),
+        )
         .merge(protected)
         .merge(admin_protected)
         .layer(CorsLayer::permissive())

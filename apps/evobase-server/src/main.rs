@@ -3,7 +3,7 @@ use std::sync::Arc;
 use evobase_auth::JwtAuthService;
 use evobase_core::{AppConfig, DatabaseManager, DatabaseRegistry, ManagedDatabase};
 use evobase_db::{PostgresDatabaseProvisioner, PostgresStorage};
-use evobase_gateway::{AppState, build_router};
+use evobase_gateway::{AppState, TopicMessagingHub, build_router};
 use evobase_messaging::InMemoryMessagingHub;
 use tokio::{net::TcpListener, signal};
 use tracing::info;
@@ -28,9 +28,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     let auth_service = Arc::new(JwtAuthService::new(storage.clone(), config.tokens.clone()));
     let messaging_service = Arc::new(InMemoryMessagingHub::default());
+    let topic_messaging = Arc::new(TopicMessagingHub::default());
     let state = AppState::new(
         auth_service,
         messaging_service,
+        topic_messaging,
         storage,
         database_manager,
         config.admin.token.clone(),

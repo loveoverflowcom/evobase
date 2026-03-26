@@ -24,7 +24,7 @@ class ApiClient {
         _ownsClient = client == null,
         _baseUri = Uri.parse(baseUrl),
         _logger = Logger(
-          level: enableLogging ? Level.debug : Level.nothing,
+          level: enableLogging ? Level.debug : Level.off,
           printer: PrettyPrinter(
             methodCount: 0,
             errorMethodCount: 5,
@@ -53,7 +53,7 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> get<T>(
     String path, {
     required T Function(dynamic json) fromJson, Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
   }) {
     return _send<T>(
       'GET',
@@ -68,7 +68,7 @@ class ApiClient {
     String path, {
     required T Function(dynamic json) fromJson, dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
   }) {
     return _send<T>(
       'POST',
@@ -84,7 +84,7 @@ class ApiClient {
     String path, {
     required T Function(dynamic json) fromJson, dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
   }) {
     return _send<T>(
       'PATCH',
@@ -99,7 +99,7 @@ class ApiClient {
   TaskEither<ApiException, ApiResponse<T>> delete<T>(
     String path, {
     required T Function(dynamic json) fromJson, Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
   }) {
     return _send<T>(
       'DELETE',
@@ -115,7 +115,7 @@ class ApiClient {
     String path, {
     required T Function(dynamic json) fromJson, dynamic data,
     Map<String, dynamic>? queryParameters,
-    AuthHeaderMode authHeaderMode = AuthHeaderMode.accessToken,
+    AuthHeaderMode authHeaderMode = .accessToken,
   }) {
     return TaskEither.tryCatch(() async {
       final request = http.Request(method, _buildUri(path, queryParameters));
@@ -174,7 +174,7 @@ class ApiClient {
     }
 
     switch (authHeaderMode) {
-      case AuthHeaderMode.accessToken:
+      case .accessToken:
         if (_accessToken != null && _accessToken!.isNotEmpty) {
           headers['Authorization'] = 'Bearer $_accessToken';
         }

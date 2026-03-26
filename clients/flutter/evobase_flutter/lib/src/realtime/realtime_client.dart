@@ -31,7 +31,7 @@ class RealtimeClient {
     required this.baseUrl,
     bool enableLogging = true,
   }) : _logger = Logger(
-          level: enableLogging ? Level.debug : Level.nothing,
+          level: enableLogging ? Level.debug : Level.off,
           printer: PrettyPrinter(
             methodCount: 0,
             errorMethodCount: 5,

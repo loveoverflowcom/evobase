@@ -44,7 +44,7 @@ void main() async {
   );
 }
 
-class EvobaseWorkbench extends StatelessWidget {
+final class EvobaseWorkbench extends StatelessWidget {
   final AuthManager authManager;
   final AuthApi authApi;
   final DocsApi docsApi;
@@ -104,7 +104,7 @@ class EvobaseWorkbench extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+final class AuthGate extends StatelessWidget {
   final DocsApi docsApi;
 
   const AuthGate({super.key, required this.docsApi});

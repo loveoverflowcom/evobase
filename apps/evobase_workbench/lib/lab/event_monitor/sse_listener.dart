@@ -9,6 +9,8 @@ import 'package:logger/logger.dart';
 class SseListener {
   final String baseUrl;
   final String? accessToken;
+  final String path;
+  final Map<String, String>? queryParameters;
   final Logger _logger = Logger();
 
   http.Client? _client;
@@ -18,7 +20,12 @@ class SseListener {
   final List<String> _currentDataLines = [];
   bool _isClosed = false;
 
-  SseListener({required this.baseUrl, this.accessToken});
+  SseListener({
+    required this.baseUrl,
+    this.accessToken,
+    this.path = '/events',
+    this.queryParameters,
+  });
 
   Stream<SseEvent> listen() {
     _isClosed = false;
@@ -32,7 +39,12 @@ class SseListener {
   Future<void> _startListening() async {
     _client = http.Client();
 
-    final request = http.Request('GET', Uri.parse('$baseUrl/events'))
+    final baseUri = Uri.parse(baseUrl);
+    final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+    final endpoint = baseUri.resolve(normalizedPath);
+    final uri = endpoint.replace(queryParameters: queryParameters);
+
+    final request = http.Request('GET', uri)
       ..headers.addAll({
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache',

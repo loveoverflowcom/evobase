@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../client/api.dart' show DocsApi;
+import '../../features/messaging/messaging_page.dart';
 import '../../l10n.dart' show AppLocalizations;
 import '../../lab/api_explorer/api_explorer_page.dart';
 import '../../theme.dart' show ThemeToggleButton;
@@ -69,7 +70,7 @@ class _HomePageState extends State<HomePage> {
               NavigationRail(
                 extended: !useCompactRail,
                 labelType: useCompactRail
-                    ? NavigationRailLabelType.none
+                    ? .none
                     : null,
                 minWidth: 72,
                 minExtendedWidth: 220,
@@ -83,8 +84,8 @@ class _HomePageState extends State<HomePage> {
                     label: Text(l10n.apiExplorer),
                   ),
                   NavigationRailDestination(
-                    icon: const Icon(Icons.security),
-                    label: Text(l10n.rlsTester),
+                    icon: const Icon(Icons.forum),
+                    label: const Text('EvoBase Messaging'),
                   ),
                   NavigationRailDestination(
                     icon: const Icon(Icons.monitor),
@@ -128,11 +129,7 @@ class _HomePageState extends State<HomePage> {
           },
         );
       case 2:
-        return FeaturePlaceholder(
-          icon: Icons.security,
-          title: l10n.rlsTester,
-          subtitle: l10n.featureComingSoon,
-        );
+        return const MessagingPage();
       case 3:
         return FeaturePlaceholder(
           icon: Icons.monitor,

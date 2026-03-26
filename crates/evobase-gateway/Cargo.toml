@@ -16,6 +16,7 @@ tower-http.workspace = true
 tracing.workspace = true
 url.workspace = true
 uuid.workspace = true
+tokio.workspace = true
 
 evobase-core = { path = "../evobase-core" }
 evobase-protocol = { path = "../evobase-protocol" }

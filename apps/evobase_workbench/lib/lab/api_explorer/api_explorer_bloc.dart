@@ -251,14 +251,19 @@ class ApiExplorerBloc extends Bloc<ApiExplorerEvent, ApiExplorerState> {
     ApiExplorerSearchChanged event,
     Emitter<ApiExplorerState> emit,
   ) {
+    final query = event.query;
+    final hasActiveSearch = query.trim().isNotEmpty;
+
     emit(
       state.copyWith(
-        searchQuery: event.query,
-        selectedTableKey: _resolveSelectedTableKey(
-          tables: state.tables,
-          preferredKey: state.selectedTableKey,
-          query: event.query,
-        ),
+        searchQuery: query,
+        selectedTableKey: hasActiveSearch
+            ? null
+            : _resolveSelectedTableKey(
+                tables: state.tables,
+                preferredKey: state.selectedTableKey,
+                query: query,
+              ),
       ),
     );
   }
@@ -295,7 +300,7 @@ class ApiExplorerBloc extends Bloc<ApiExplorerEvent, ApiExplorerState> {
       }
     }
 
-    return tableDocKey(filteredTables.first);
+    return null;
   }
 
   List<TableDocDto> _filterTables(List<TableDocDto> tables, String query) {

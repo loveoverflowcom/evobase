@@ -1,0 +1,22 @@
+[package]
+name = "evobase-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+axum.workspace = true
+dotenvy.workspace = true
+evobase-db = { path = "../../crates/evobase-db" }
+evobase-domain = { path = "../../crates/evobase-domain" }
+http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true

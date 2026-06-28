@@ -1,5 +1,5 @@
 [package]
-name = "evobase-db"
+name = "evobase-domain"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,8 +8,7 @@ rust-version.workspace = true
 
 [dependencies]
 async-trait.workspace = true
-evobase-domain = { path = "../evobase-domain" }
+serde.workspace = true
 serde_json.workspace = true
-sqlx.workspace = true
-tracing.workspace = true
+thiserror.workspace = true
 uuid.workspace = true

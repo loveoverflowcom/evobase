@@ -34,7 +34,7 @@ def heading_anchors(text: str) -> set[str]:
     return anchors
 
 
-def validate(root: Path, changed: list[str] | None = None) -> dict[str, object]:
+def validate(root: Path, changed: list[str] | None = None, base: str = "HEAD") -> dict[str, object]:
     root = root.resolve()
     errors: list[str] = []
     for name in sorted(SKILLS):
@@ -83,9 +83,20 @@ def validate(root: Path, changed: list[str] | None = None) -> dict[str, object]:
                 if unquote(parsed.fragment) not in heading_anchors(target.read_text(encoding="utf-8")):
                     errors.append(f"missing anchor: {relative} -> {destination}")
 
+    scope_comparison = "provided changed paths"
     if changed is None:
+        resolved = subprocess.run(
+            ["git", "rev-parse", "--verify", "--end-of-options", f"{base}^{{commit}}"],
+            cwd=root, capture_output=True, text=True, check=False,
+        )
+        if resolved.returncode:
+            errors.append(f"invalid scope base: {base}")
+            scope_comparison = f"invalid base {base}; scope not established"
+        else:
+            base = resolved.stdout.strip()
+            scope_comparison = f"{base} to working tree plus untracked"
         commands = [
-            ["git", "diff", "--name-only", "HEAD", "--"],
+            ["git", "diff", "--name-only", base, "--"],
             ["git", "ls-files", "--others", "--exclude-standard"],
         ]
         changed = []
@@ -104,6 +115,7 @@ def validate(root: Path, changed: list[str] | None = None) -> dict[str, object]:
         "relative_links": link_count,
         "required_skills": len(SKILLS),
         "changed_paths": len(set(changed)),
+        "scope_comparison": scope_comparison,
         "errors": errors,
         "limitations": "No product compile, policy, DB, UI/native, provider or exhaustive secret scan proof",
     }
@@ -112,8 +124,9 @@ def validate(root: Path, changed: list[str] | None = None) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[3])
+    parser.add_argument("--base", default="HEAD", help="Pinned commit/ref to compare; default checks only changes since HEAD")
     args = parser.parse_args()
-    report = validate(args.root)
+    report = validate(args.root, base=args.base)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if report["errors"] else 0
 

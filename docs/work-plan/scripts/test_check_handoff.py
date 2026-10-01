@@ -1,6 +1,7 @@
 """Regression tests for the planning-only document validator."""
 
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -49,6 +50,26 @@ class HandoffChecks(unittest.TestCase):
     def test_no_absolute_path_or_outside_link(self):
         self.doc.write_text("# Handoff\n[outside](../../../../outside.md)\n")
         self.assertTrue(any(x.startswith("link outside repository:") for x in self.check()))
+
+    def test_pinned_base_detects_committed_product_change(self):
+        def git(*args):
+            return subprocess.check_output(
+                ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", *args],
+                cwd=self.root, text=True, stderr=subprocess.DEVNULL,
+            ).strip()
+        git("init", "-q")
+        git("add", ".")
+        git("commit", "-qm", "baseline")
+        baseline = git("rev-parse", "HEAD")
+        product = self.root / "apps" / "web" / "src" / "lib.rs"
+        product.parent.mkdir(parents=True)
+        product.write_text("// Fixture product change\n")
+        git("add", ".")
+        git("commit", "-qm", "product change")
+        report = validate(self.root, base=baseline)
+        self.assertIn("outside planning scope: apps/web/src/lib.rs", report["errors"])
+        self.assertIn(baseline, report["scope_comparison"])
+        self.assertNotIn("outside planning scope: apps/web/src/lib.rs", validate(self.root)["errors"])
 
 
 if __name__ == "__main__":

@@ -83,12 +83,15 @@ implemented by the selected future PR, not invented as current `xtask`/Gradle co
 Current docs-only checks from the repository root:
 
 ```sh
-python3 docs/work-plan/scripts/check_handoff.py
+python3 docs/work-plan/scripts/check_handoff.py --base 4cb5873200f4d735b17b75fdd3cb88c2efdbb322
 python3 -m unittest discover -s docs/work-plan/scripts -p 'test_*.py'
 git diff --check
 ```
 
 The checker validates this handoff's local metadata/links and narrowly scoped privacy patterns;
+`--base` includes committed changes since the pinned baseline as well as the dirty working tree;
+without it the scope check covers only changes since HEAD plus untracked files. It reports the
+exact comparison and cannot claim a docs-only commit from the default dirty-tree check alone.
 it is not a product build/test harness or a complete secret scanner. Skill frontmatter was also
 validated with the installed skill-creator validator; no personal skill installation occurred.
 

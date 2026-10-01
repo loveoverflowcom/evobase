@@ -71,6 +71,14 @@ class HandoffChecks(unittest.TestCase):
         self.assertIn(baseline, report["scope_comparison"])
         self.assertNotIn("outside planning scope: apps/web/src/lib.rs", validate(self.root)["errors"])
 
+    def test_invalid_base_never_becomes_git_diff_option(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        output = self.root / "unexpected-output.txt"
+        report = validate(self.root, base=f"--output={output}")
+        self.assertTrue(any(x.startswith("invalid scope base:") for x in report["errors"]))
+        self.assertIn("scope not established", report["scope_comparison"])
+        self.assertFalse(output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -85,6 +85,7 @@ def validate(root: Path, changed: list[str] | None = None, base: str = "HEAD") -
 
     scope_comparison = "provided changed paths"
     if changed is None:
+        commands = []
         resolved = subprocess.run(
             ["git", "rev-parse", "--verify", "--end-of-options", f"{base}^{{commit}}"],
             cwd=root, capture_output=True, text=True, check=False,
@@ -95,10 +96,8 @@ def validate(root: Path, changed: list[str] | None = None, base: str = "HEAD") -
         else:
             base = resolved.stdout.strip()
             scope_comparison = f"{base} to working tree plus untracked"
-        commands = [
-            ["git", "diff", "--name-only", base, "--"],
-            ["git", "ls-files", "--others", "--exclude-standard"],
-        ]
+            commands.append(["git", "diff", "--name-only", base, "--"])
+        commands.append(["git", "ls-files", "--others", "--exclude-standard"])
         changed = []
         for command in commands:
             result = subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)

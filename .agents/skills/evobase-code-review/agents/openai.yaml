@@ -1,0 +1,4 @@
+interface:
+  display_name: "EvoBase Code Review"
+  short_description: "Review EvoBase boundaries and evidence read-only"
+  default_prompt: "Use $evobase-code-review to review this change read-only and report introduced defects, evidence gaps, and residual risk."

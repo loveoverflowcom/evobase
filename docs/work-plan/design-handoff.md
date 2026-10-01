@@ -1,7 +1,10 @@
 # M3 Expressive companion design contract
 
-Status: companion design deliverable; import its immutable published commit before coding.
+Status: **published design specification; no product implementation evidence**.
 Design branch: `design/m3-expressive-20261001`.
+Immutable pin: [`6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`](https://github.com/loveoverflowcom/evobase/tree/6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e/design/m3-expressive).
+All 142 selected public files were checked against current local Git hashes with zero mismatch.
+Import this reviewed source identity into the rewrite before coding; do not fork its palette.
 
 Canonical public handoff paths:
 
@@ -11,9 +14,13 @@ Canonical public handoff paths:
 - `design/m3-expressive/specs/screen-map.md`
 - `design/m3-expressive/specs/source-to-design.md`
 
-Use the designer's exact final inventory/commit, not invented links. The work queue maps to its
-12 packs; pack02 and pack06 have two implementation PRs each. Issue references are added only
-after publication verifies IDs/URLs.
+The [published index](https://github.com/loveoverflowcom/evobase/blob/6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e/design/m3-expressive/README.md)
+and [pack map](https://github.com/loveoverflowcom/evobase/blob/6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e/design/m3-expressive/packages/pack-index.json)
+own 27 screens in 12 packs, 60 screen SVG frames and 44 representative PNGs. Two additional SVGs
+are brand assets. Public per-pack ZIPs contain lightweight source; expanded review ZIPs and contact
+sheets are separate private Library deliverables. Pack02 and pack06 each map to two implementation
+PRs. The [verified issue map](issue-map.md) covers EvoBase #3–#14; bodies were read back with the
+same immutable design/prompt pins. No product acceptance is inferred from these issue publications.
 
 ## Minimum design-to-implementation contract
 

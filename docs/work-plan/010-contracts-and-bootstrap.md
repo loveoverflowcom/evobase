@@ -1,5 +1,6 @@
 # 010 — Resolve reboot contracts and bootstrap decisions
 
+Design issue: [EvoBase #3](https://github.com/loveoverflowcom/evobase/issues/3). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed next PR; planning/docs only, no product scaffolding.
 Design pack: 01 foundation/shell/identity decision. Skills: engineering, Web/CMP as design criteria, review.
 

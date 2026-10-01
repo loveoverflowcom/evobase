@@ -1,5 +1,6 @@
 # 130 — Add a scoped bot with checked tools and human handoff
 
+Design issue: [EvoBase #13](https://github.com/loveoverflowcom/evobase/issues/13). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 11 bot.
 Skills: engineering → authority/functions/storage; Web/CMP for scope/approval/handoff.
 

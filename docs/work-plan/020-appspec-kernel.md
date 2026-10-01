@@ -1,5 +1,6 @@
 # 020 — Build a bounded checked AppSpec kernel
 
+Design issue: [EvoBase #4](https://github.com/loveoverflowcom/evobase/issues/4). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 02 data foundation.
 Skills: engineering → AppSpec, boundary-hardening, functional-core, evidence.
 

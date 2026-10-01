@@ -1,5 +1,6 @@
 # 080 — Rehearse safe schema evolution and recovery
 
+Design issue: [EvoBase #8](https://github.com/loveoverflowcom/evobase/issues/8). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 06 upgrade/evolution.
 Skills: engineering → isolated-storage/AppSpec/portability; Web for impact/recovery UI.
 

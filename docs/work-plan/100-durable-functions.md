@@ -1,5 +1,6 @@
 # 100 — Execute one declarative durable approval function
 
+Design issue: [EvoBase #10](https://github.com/loveoverflowcom/evobase/issues/10). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 08 functions/runs.
 Skills: engineering → durable-functions/storage/authority; Web/CMP for designer/run/task states.
 

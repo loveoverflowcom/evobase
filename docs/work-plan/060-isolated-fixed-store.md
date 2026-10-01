@@ -1,5 +1,6 @@
 # 060 — Prove isolated fixed-layout PostgreSQL storage
 
+Design issue: [EvoBase #7](https://github.com/loveoverflowcom/evobase/issues/7). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future spike, not production scalability claim. Design pack: 05 hosted isolation.
 Skills: engineering → isolated-storage, authority, evidence/resource budget.
 

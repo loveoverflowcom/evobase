@@ -1,5 +1,6 @@
 # 140 — Establish an explicit portable/local recovery profile
 
+Design issue: [EvoBase #14](https://github.com/loveoverflowcom/evobase/issues/14). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 12 portability/offline.
 Skills: engineering → AppSpec/portability/storage/functions; CMP if local native profile selected.
 

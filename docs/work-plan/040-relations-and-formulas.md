@@ -1,5 +1,6 @@
 # 040 — Deliver stable relations, captured prices and pure rollups
 
+Design issue: [EvoBase #5](https://github.com/loveoverflowcom/evobase/issues/5). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 03 relations/formulas.
 Skills: engineering → relations/AppSpec; Web for relation inspector/formula projection.
 

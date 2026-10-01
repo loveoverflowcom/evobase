@@ -12,6 +12,14 @@ VOT infrastructure credentials/accounts or authorize retirement/deployment/data 
 - VOT `develop@de39212007404196774fabc5ff98caf5624fea61`, private source reference.
 - [EvoBase #1](https://github.com/loveoverflowcom/evobase/issues/1) and its transfer comment;
   [VOT #773](https://github.com/loveoverflowcom/vot-workspace/issues/773) owns later source retirement.
+- Published M3 design pin `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`: 142 files beneath
+  `design/m3-expressive/`, independently matched to reviewed local blob hashes. Full 27-screen/
+  12-pack map, canonical tokens/contracts, 60 screen SVGs, representative PNGs and lightweight
+  source ZIPs; expanded review ZIPs are separate Library deliverables. Bundled Open Sans notice/
+  license metadata states Apache 2.0 / Version 1.10; preserved asset notices own that attribution.
+- Design issues EvoBase #3–#14 were individually read back with exact design/prompt commit pins;
+  see the [static issue map](issue-map.md). No implementation or source retirement is completed
+  by publication of those design specifications.
 
 ## Guidance adaptation
 

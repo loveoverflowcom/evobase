@@ -1,5 +1,6 @@
 # 110 — Configure verified Email/webhook connector contracts
 
+Design issue: [EvoBase #11](https://github.com/loveoverflowcom/evobase/issues/11). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 09 connections.
 Skills: engineering → durable-functions/authority/boundaries; Web for mapping/test/consent.
 

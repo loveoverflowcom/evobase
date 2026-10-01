@@ -20,6 +20,10 @@ assignment and status. Do not maintain a competing status database here.
 
 ## Queue and design-pack mapping
 
+All 12 design issues have been published as [EvoBase #3–#14](issue-map.md), pinned to the immutable
+design source. Each implementation prompt links its verified owning issue. Start with [#3](https://github.com/loveoverflowcom/evobase/issues/3)
+for contract/design review; do not treat issue creation as permission to code the queue.
+
 | Order / outcome | Design pack | Dependency gate | Primary skill |
 |---|---|---|---|
 | [010 Contracts and bootstrap decisions](010-contracts-and-bootstrap.md) | 01 foundation/shell/identity decision | source/design review | engineering |
@@ -66,7 +70,11 @@ not installed personal skills or a new product test runner.
 
 The designer publishes `design/m3-expressive/source/tokens.json`, component contracts, state/
 accessibility matrix, screen map, static frames and a fixture prototype in the companion design
-branch `design/m3-expressive-20261001`. Pin its immutable commit/issue links before implementation;
+branch `design/m3-expressive-20261001`. The reviewed immutable design pin is
+[`6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`](https://github.com/loveoverflowcom/evobase/tree/6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e/design/m3-expressive):
+27 screens / 12 packs / 60 screen SVG frames / 44 PNG representatives. All 142 published design
+objects match reviewed source hashes. The [verified issue-to-prompt map](issue-map.md) links
+all 12 scoped design issues. Import this canonical identity before implementation;
 never create a second palette/schema copy. See [design handoff](design-handoff.md).
 
 Design fixtures are intended behavior/specification. They do not prove compiled Leptos, native

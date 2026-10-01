@@ -1,5 +1,6 @@
 # 120 — Expose a managed business messaging inbox
 
+Design issue: [EvoBase #12](https://github.com/loveoverflowcom/evobase/issues/12). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 10 inbox.
 Skills: engineering → storage/authority/functions; Web/CMP for inbox/conversation states.
 

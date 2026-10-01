@@ -1,5 +1,6 @@
 # 090 — Deliver authorized Runtime desktop and CMP forms/actions
 
+Design issue: [EvoBase #9](https://github.com/loveoverflowcom/evobase/issues/9). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 07 runtime/forms/approval.
 Skills: engineering + Web + CMP; inspector for evidence review.
 

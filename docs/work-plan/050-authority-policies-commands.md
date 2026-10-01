@@ -1,5 +1,6 @@
 # 050 — Establish trusted host authority and checked policy/commands
 
+Design issue: [EvoBase #6](https://github.com/loveoverflowcom/evobase/issues/6). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
 Status: proposed future implementation. Design pack: 04 policies/actions.
 Skills: engineering → authority, boundary-hardening, core; Web for policy/command projection.
 

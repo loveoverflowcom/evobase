@@ -1,0 +1,313 @@
+{
+  "version": 1,
+  "evidence": "static-svg-raster + fixture-prototype; no live app proof",
+  "screen_count": 27,
+  "packs": [
+    {
+      "pack": "01-foundation",
+      "title": "Foundation / M3 Expressive shells",
+      "screens": [
+        "workspace",
+        "new-app",
+        "settings",
+        "states",
+        "components"
+      ],
+      "prompts": [
+        "010-contracts-and-bootstrap.md"
+      ],
+      "representative": "workspace",
+      "scope": "Thống nhất AppSpec/host boundaries, source tokens, adaptive shells và trạng thái phiên. Provider sign-in journey chờ identity ADR.",
+      "gates": [
+        "Token source→generated output→mounted consumer trace; không fork palette",
+        "Workspace/Builder/Runtime navigation separate; compact Builder read-only summary",
+        "Light/dark, focus, VI/EN, reduced motion, zoom/text-scale evidence",
+        "Denied/session-expired giữ unsent draft; không coi settings là auth journey hoàn chỉnh"
+      ],
+      "zip": "packages/evobase-01-foundation-source.zip",
+      "zip_bytes": 117946,
+      "sha256": "737a2e999991acddcf394debb56789e678c4c24ec8236430bc472a549d8335e0",
+      "expanded_review_zip": "packages/evobase-01-foundation.zip",
+      "expanded_review_zip_bytes": 548754,
+      "expanded_review_sha256": "ba07e420c7631f5317db96d02db8b7f21d3b9044770325ccec4cece05d7f27d1"
+    },
+    {
+      "pack": "02-data-grid",
+      "title": "Typed data / grid / import",
+      "screens": [
+        "builder-data",
+        "field-inspector",
+        "import-resolve"
+      ],
+      "prompts": [
+        "020-appspec-kernel.md",
+        "030-typed-grid-and-import.md"
+      ],
+      "representative": "builder-data",
+      "scope": "Kernel semantics trước grid. Bảng có kiểu và Ref hiển thị nhãn, lưu identity; import cần resolve.",
+      "gates": [
+        "Golden codec/ID/type/Ref round-trip vectors độc lập GUI/SQL",
+        "Ref wrong table/missing/ambiguous/cross-scope bị chặn; reverse derived",
+        "Grid keyboard/IME/paste/sort/rename không selection drift; currency unit rõ",
+        "Cần hiện receipt/revision và lỗi theo ô, không giả save success"
+      ],
+      "zip": "packages/evobase-02-data-grid-source.zip",
+      "zip_bytes": 111764,
+      "sha256": "7fc9062e829dece484dd002b58f1c2338b26e9b50f9060d3e8acd8e3652d5632",
+      "expanded_review_zip": "packages/evobase-02-data-grid.zip",
+      "expanded_review_zip_bytes": 435635,
+      "expanded_review_sha256": "973fc6672a4e5cf91781f93ee9e1fb1ccaa037901ddf67018c1b0f91f73ae4d6"
+    },
+    {
+      "pack": "03-structure-formulas",
+      "title": "Relations / formulas",
+      "screens": [
+        "relations",
+        "formula"
+      ],
+      "prompts": [
+        "040-relations-and-formulas.md"
+      ],
+      "representative": "relations",
+      "scope": "Quan hệ và biểu thức thuần cùng stable-ID binding; captured price khác live lookup.",
+      "gates": [
+        "Baseline N:1 + restrict có conformance; 1:1/N:M disabled đến khi test/gate đạt",
+        "Không hai canonical directions; edges/indexes projection có consistency proof",
+        "Formula type/resource bounds; computed output policy, không partial visible-child total giả",
+        "Rename/reorder/label đổi vẫn giữ nghĩa; targeted differential/golden tests"
+      ],
+      "zip": "packages/evobase-03-structure-formulas-source.zip",
+      "zip_bytes": 100859,
+      "sha256": "0237966acf422f26a9217a99efd8e0e424a00626feab0f8a1de852164c53f0ad",
+      "expanded_review_zip": "packages/evobase-03-structure-formulas.zip",
+      "expanded_review_zip_bytes": 251337,
+      "expanded_review_sha256": "9f32af8fadb1567a9ab1cebe2e32e4422df4cea9288f1df9916f8a6315a2e7bd"
+    },
+    {
+      "pack": "04-policies-commands",
+      "title": "Authority / policy / commands",
+      "screens": [
+        "policy",
+        "command"
+      ],
+      "prompts": [
+        "050-authority-policies-commands.md"
+      ],
+      "representative": "policy",
+      "scope": "Câu cấu trúc dễ hiểu với current authority, guards và typed receipt.",
+      "gates": [
+        "Host boundary AND current grants AND app policy AND restrictions; missing context deny",
+        "Relation/picker/join/export/aggregate không ngầm mở quyền",
+        "Old+new state và field mutability kiểm tại command commit",
+        "Request key binds immutable intent; exact retry returns original receipt under current grants; no effect duplication"
+      ],
+      "zip": "packages/evobase-04-policies-commands-source.zip",
+      "zip_bytes": 101066,
+      "sha256": "4dd2abafbcccf01965ef201b2c771e9f1f198050e18e2d59e5022f5e434549e6",
+      "expanded_review_zip": "packages/evobase-04-policies-commands.zip",
+      "expanded_review_zip_bytes": 258092,
+      "expanded_review_sha256": "26536efb2ad28c0370aeabb3efcab15122c9ec371db3bfbdb3f22ecb2d5a2ce8"
+    },
+    {
+      "pack": "05-hosted-isolation",
+      "title": "Isolated fixed-store spike",
+      "screens": [
+        "tenant-ops"
+      ],
+      "prompts": [
+        "060-isolated-fixed-store.md"
+      ],
+      "representative": "tenant-ops",
+      "scope": "Đo fixed-layout engine store và database-per-tenant, giữ lựa chọn ADR chưa settled production.",
+      "gates": [
+        "Hai tenant DB + provisioner/runtime role separation; runtime no DDL/BYPASSRLS",
+        "Thêm logical table/optional field/Ref/publish không business SQL DDL; actual catalog evidence",
+        "Records/edges/index/unique/revision/outbox atomic; concurrency/restart/failure vectors",
+        "Tenant negative tests gồm API/Ref/cache/subscription/blob/log/bot; resource/latency measurements + support envelope ADR"
+      ],
+      "zip": "packages/evobase-05-hosted-isolation-source.zip",
+      "zip_bytes": 95814,
+      "sha256": "a7589a84a72a88f43502257a51ddb0a8e8eb632e74bfe970568622864d515f25",
+      "expanded_review_zip": "packages/evobase-05-hosted-isolation.zip",
+      "expanded_review_zip_bytes": 178957,
+      "expanded_review_sha256": "fb127c54c43dc5e44e09b8ffe683aeeff034d5a36d89581caacc522ce41ef5fb"
+    },
+    {
+      "pack": "06-release",
+      "title": "Preview / release / evolution",
+      "screens": [
+        "view-builder",
+        "preview",
+        "publish",
+        "migration"
+      ],
+      "prompts": [
+        "070-release-and-preview.md",
+        "080-schema-evolution.md"
+      ],
+      "representative": "publish",
+      "scope": "Preview zero delivery, immutable checked release, impact/backfill/recovery trước activation.",
+      "gates": [
+        "Draft edits never activate; preview no live writes/no external dispatch",
+        "AppSpec/model/data/binding/policy revisions separate; app instance pins release",
+        "Type/required/backfill impact preview + atomic cutover/recovery proof; no-DDL still migration",
+        "Live runs keep pinned version; rollback/restore does not unsend/replay effects or revive revoked grants"
+      ],
+      "zip": "packages/evobase-06-release-source.zip",
+      "zip_bytes": 112057,
+      "sha256": "348f3730447508c635807b8a89272ef57ddc904b1446b588b6ed3376557917bb",
+      "expanded_review_zip": "packages/evobase-06-release.zip",
+      "expanded_review_zip_bytes": 445208,
+      "expanded_review_sha256": "463ba88b40fb92819dbfa20b4a7c000d6c8b2b949aeb470c844591b3f64546f7"
+    },
+    {
+      "pack": "07-runtime",
+      "title": "Runtime web / CMP",
+      "screens": [
+        "runtime-home",
+        "runtime-detail",
+        "runtime-form",
+        "approval"
+      ],
+      "prompts": [
+        "090-runtime-web-cmp.md"
+      ],
+      "representative": "runtime-home",
+      "scope": "List-detail/form/approval có phép; mobile ưu tiên việc thực cần làm, không modeling trên phone.",
+      "gates": [
+        "Only authorized projection/actions render; trusted runtime still enforces",
+        "Save draft vs Submit distinct; receipt/revision/conflict/no-false-sent semantics",
+        "Approval old+new/current grants and reviewed revision; reject explicit; Close/Back not decision",
+        "Visible navigation-up, Android Back/iOS edge/browser history/IME/safe-area + native CMP evidence separate from mobile Web"
+      ],
+      "zip": "packages/evobase-07-runtime-source.zip",
+      "zip_bytes": 113276,
+      "sha256": "cc60830633a9e29c5cb05b1a814d0d497a7acf213b19c755586514cbc4c53b66",
+      "expanded_review_zip": "packages/evobase-07-runtime.zip",
+      "expanded_review_zip_bytes": 446895,
+      "expanded_review_sha256": "f36dfd747c62e7ee8630cde60887f1f145a03d42c101e6cf1b96f5a0ddee5935"
+    },
+    {
+      "pack": "08-functions",
+      "title": "Durable declarative functions",
+      "screens": [
+        "functions",
+        "run-detail"
+      ],
+      "prompts": [
+        "100-durable-functions.md"
+      ],
+      "representative": "functions",
+      "scope": "Finite typed steps, durable waits và trạng thái gửi chưa rõ kết quả.",
+      "gates": [
+        "Pinned plan/run IDs/input snapshot/checkpoint/lease fencing and per-tenant budgets",
+        "Transaction + event/outbox atomic; no network wait while holding DB transaction",
+        "Lost ACK/duplicate/timer/restart/late-worker tests; bounded transient retries/permanent quarantine",
+        "OutcomeUnknown + reconcile/correlation; current consent at dispatch; no exactly-once external promise"
+      ],
+      "zip": "packages/evobase-08-functions-source.zip",
+      "zip_bytes": 101547,
+      "sha256": "944ba3de3921ed2ce0a43e2f5e846581bb4384c77412e9a5c94d44df33c823d2",
+      "expanded_review_zip": "packages/evobase-08-functions.zip",
+      "expanded_review_zip_bytes": 259214,
+      "expanded_review_sha256": "999a491dd5189bb65fb5d3e509a19f9d8859631c75a7b6956c3bce0a4351ca5c"
+    },
+    {
+      "pack": "09-connectors",
+      "title": "Email / webhook capability bindings",
+      "screens": [
+        "connectors"
+      ],
+      "prompts": [
+        "110-connectors.md"
+      ],
+      "representative": "connectors",
+      "scope": "Contract capabilities thực, host account/consent/secret handles riêng definition.",
+      "gates": [
+        "Email fake provider labeled simulated; real-target evidence only after authorized test",
+        "Verified webhook/dedup/tenant correlation; payload cannot grant actor or tenant",
+        "Secret handles/accounts chỉ ở host bindings; portable definition chỉ abstract connector contracts, không host-secret binding; egress/consent recheck",
+        "Zalo separate adapter spike/permissions; unsupported disabled; phone number not automatic valid recipient"
+      ],
+      "zip": "packages/evobase-09-connectors-source.zip",
+      "zip_bytes": 96047,
+      "sha256": "ae0d75cfda846f475b8b4dcafb2e682abfcb9893fb57afd1225fe8b5070132fe",
+      "expanded_review_zip": "packages/evobase-09-connectors.zip",
+      "expanded_review_zip_bytes": 181155,
+      "expanded_review_sha256": "891437c73349bc070200e2a2fe27f906aa56ec42e53e7638845b9433e9119214"
+    },
+    {
+      "pack": "10-messaging",
+      "title": "Business inbox / messaging",
+      "screens": [
+        "inbox"
+      ],
+      "prompts": [
+        "120-messaging.md"
+      ],
+      "representative": "inbox",
+      "scope": "Hộp thư có context với protected transport metadata.",
+      "gates": [
+        "Conversation/message/participant/delivery typed managed projections",
+        "Provider IDs/receipts read-only; generic edit cannot fake delivered/received",
+        "Scoped inbox/attachment/search + current output policy tests",
+        "Draft message separate dispatch; unknown delivery clearly shown; no federation/E2EE requirement for MVP"
+      ],
+      "zip": "packages/evobase-10-messaging-source.zip",
+      "zip_bytes": 94964,
+      "sha256": "14e31e1b5632dbd55159283f376b6c9402238efb996b3d3b083f5bcaf724f344",
+      "expanded_review_zip": "packages/evobase-10-messaging.zip",
+      "expanded_review_zip_bytes": 153721,
+      "expanded_review_sha256": "2ecbc5b8d2b1a7644e412988d3cc3c5066ed405f586c9801cec1f4be5a15ea38"
+    },
+    {
+      "pack": "11-scoped-bot",
+      "title": "Scoped service-actor bot",
+      "screens": [
+        "bot-scope"
+      ],
+      "prompts": [
+        "130-scoped-bot.md"
+      ],
+      "representative": "bot-scope",
+      "scope": "Allowed projections/commands, budgets, consent và human approval.",
+      "gates": [
+        "Verified identity linking; display name not authority",
+        "Retrieved content untrusted; no permission elevation/tool instruction from messages",
+        "Bot cannot MarkPaid/change inventory/policy/credentials without app policy and authorized command",
+        "Index/search/cache/history tenant+current-grant scope, prompt injection/denied/no-model-binding tests"
+      ],
+      "zip": "packages/evobase-11-scoped-bot-source.zip",
+      "zip_bytes": 95715,
+      "sha256": "2d0f83f370940cb5df6b91f9e9ad355ec1ad7df5078a1fd44b317af69b74293c",
+      "expanded_review_zip": "packages/evobase-11-scoped-bot.zip",
+      "expanded_review_zip_bytes": 177504,
+      "expanded_review_sha256": "cb93488952ffc76f2c083ac1912f760bca8d3e1285a4f1e5c47ea86cd6c49bfc"
+    },
+    {
+      "pack": "12-portability",
+      "title": "Local profile / recovery",
+      "screens": [
+        "offline"
+      ],
+      "prompts": [
+        "140-portability-recovery.md"
+      ],
+      "representative": "offline",
+      "scope": "ADR support envelope cho portable execution, local unsent draft và restore.",
+      "gates": [
+        "Bounded codec/version/provenance and stable identity compatibility, .evobase extension ADR",
+        "Local snapshot does not grant hosted authority; no falsely confirmed offline send",
+        "Conflict needs review; reauth/revalidation/current permissions at sync",
+        "Restore/export/receipts test: no revoked-grant resurrection or arbitrary external replay"
+      ],
+      "zip": "packages/evobase-12-portability-source.zip",
+      "zip_bytes": 95657,
+      "sha256": "b0cdd3fde425be00e7fe5d79ff42d884b535c321bdc9084b228320f945d75a30",
+      "expanded_review_zip": "packages/evobase-12-portability.zip",
+      "expanded_review_zip_bytes": 179824,
+      "expanded_review_sha256": "68293aa989428c61294f5dc811dddf8a2f4bb39eaf17cc70534fec978416a253"
+    }
+  ],
+  "note": "Source ZIPs omit rasters; pinned PNG previews live in previews/. Expanded review ZIPs delivered separately."
+}

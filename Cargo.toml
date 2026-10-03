@@ -3,6 +3,7 @@ members = [
     "crates/evobase-appspec",
     "crates/evobase-store",
     "apps/evobase-builder",
+    "apps/evobase-host",
     "apps/evobase-server",
     "crates/evobase-auth",
     "crates/evobase-core",

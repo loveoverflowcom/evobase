@@ -1,0 +1,27 @@
+[package]
+name = "evobase-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+axum.workspace = true
+evobase-appspec = { path = "../../crates/evobase-appspec" }
+evobase-protocol = { path = "../../crates/evobase-protocol" }
+evobase-store = { path = "../../crates/evobase-store" }
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+subtle = "2.6"
+thiserror.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tower = { workspace = true, features = ["util"] }
+http-body-util = "0.1"
+tempfile = "3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

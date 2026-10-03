@@ -17,13 +17,13 @@ the entire platform.
 The batch intent is ordered by its checked-contract dependencies, with roughly five reviewable
 commits rather than one platform rewrite:
 
-| Commit intent | Owning issue / prompt | Current batch state |
+| Commit scope | Owning issue / prompt | Experimental delivery / remaining gate |
 |---|---|---|
-| 1. Reconcile vision, import reviewed guidance/design, select foundation profile | #3 / [010](010-contracts-and-bootstrap.md) | Selected; documented draft decisions, product shell gates still open. |
-| 2. Add bounded raw → checked AppSpec, stable IDs and exact values | #4 / [020](020-appspec-kernel.md) | Selected; acceptance depends on implementation vectors. |
-| 3. Mount a Leptos typed local-draft Builder consuming Rust contracts and canonical design | #3–#4 / [030](030-typed-grid-and-import.md) | Selected; browser local draft, no authenticated tenant host. |
-| 4. Add N:1/restrict, captures and bounded formula core plus browser inspector | #5 / [040](040-relations-and-formulas.md) | Selected; advanced relations remain outside scope. |
-| 5. Add a bounded policy/command core and simulated browser inspector; verify integrated batch/CI | #6 / [050](050-authority-policies-commands.md) | Selected; trusted facts are supplied locally for simulation, no real session/grants adapter. |
+| 1. Reconcile vision, import reviewed guidance/design, select foundation profile | #3 / [010](010-contracts-and-bootstrap.md) | E0 delivered in `6e14972`; browser/native/host shell acceptance remains scoped separately. |
+| 2. Add bounded raw → checked AppSpec, stable IDs and exact values | #4 / [020](020-appspec-kernel.md) | Kernel delivered in `6fa7bb0`, with native/WASI vectors; later rule additions retain the same bounded contract. |
+| 3. Mount a Leptos typed local-draft Builder consuming Rust contracts and canonical design | #3–#4 / [030](030-typed-grid-and-import.md) | Mounted local-draft grid/import and optional field control; final artifact checks are in [batch evidence](batch-evidence.md), no authenticated tenant host. |
+| 4. Add N:1/restrict, captures and bounded formula core plus browser inspector | #5 / [040](040-relations-and-formulas.md) | N:1/restrict/capture and bounded query APIs implemented; portable formula authoring/export and advanced relations deferred. |
+| 5. Add a bounded policy/command core and simulated browser inspector; verify integrated batch/CI | #6 / [050](050-authority-policies-commands.md) | Definition-owned owner/role and SubmitOrder core implemented with simulated host facts; verified session/API and transactional receipts deferred. |
 
 These rows describe the current batch, not a second issue-status database. GitHub owns final issue
 status. Close an issue only when all its scoped acceptance is met; otherwise mark the delivered
@@ -32,6 +32,17 @@ fixed-store acceptance.
 
 Numeric prefixes below are dependency ordering markers, not permanent task IDs. Renumber if
 verified dependencies change. This folder owns prompts/gates; GitHub owns discussion/assignment.
+
+## Next work before storage
+
+Finish the remaining #3/#4 browser acceptance with the current artifact: complete structured
+authoring/Ref-resolution flows, full accessibility/input evidence and the honest boundary between
+local interruption simulation and a real session. Add #5 portable formula declarations, authoring
+and export against the same checked semantics. Complete #6 with a verified host/session/API
+adapter and supported output-policy coverage, including explicit denial of unsupported restricted
+joins/complete scans. Only then begin [060 isolated storage](060-isolated-fixed-store.md), whose
+trusted routing, authorization-before-replay and atomic command executor depend on those contracts.
+CMP/native, provider and broader vision gates remain separate.
 
 ## Queue and design-pack mapping
 
@@ -101,6 +112,11 @@ CMP, authentication, tenant isolation, durable dispatch or real connector suppor
 mock delivery, pending/conflict/revoked/unknown states must remain visible in actual implementation.
 
 ## Evidence boundaries
+
+[Batch evidence](batch-evidence.md) records exact executed checks and artifact/source identities.
+The browser matrix must use the newly rebuilt bundle; an earlier green run is not evidence for
+a later source change. The added CI workflow is configuration until its remote run is observed.
+
 
 The foundation commit establishes document metadata/local-link/scope/privacy/provenance checks
 only. Subsequent implementation commits report their own exact native/WASM/browser commands and

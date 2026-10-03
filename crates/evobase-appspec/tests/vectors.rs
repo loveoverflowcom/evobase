@@ -313,6 +313,8 @@ pub fn value_vectors() {
         version: 1,
         app_id: scope.app_id().clone(),
         name: "Sparse".to_owned(),
+        policies: Vec::new(),
+        submit_rules: Vec::new(),
         tables: vec![RawTable {
             id: table("tbl_sparse"),
             name: "Sparse".to_owned(),

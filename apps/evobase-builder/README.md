@@ -54,6 +54,15 @@ store and bounded pure query APIs. It demonstrates live price versus capture,
 reverse references, subtotal/total and restrict-delete failures. These query
 examples do not implement portable formula authoring or deployment.
 
+The policy editor changes the canonical AppSpec policy and SubmitOrder rule arrays;
+its callback marks that draft unsaved, and local Save/Cancel handles the same source
+as grid edits. Rule authoring pauses while saving or during the interruption
+simulation. A separate command sandbox exercises fixture actors, independent host
+grants, owner/current-role policies, normalization, immutable retry intent and
+current-authority checks before receipt replay. Sandbox writes and receipts stay
+in memory and are explicitly simulated; there is no verified host/API adapter or
+atomic persistent command transaction here.
+
 Local persistence stores opaque canonical definition and record JSON strings.
 Restore passes through the checked Rust codecs, including their byte/depth/node
 budgets. Failed restoration preserves the source bytes and disables saving in

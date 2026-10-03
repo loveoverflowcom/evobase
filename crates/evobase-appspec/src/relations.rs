@@ -192,6 +192,29 @@ impl RelationStore {
         if changes.len() > MAX_BATCH {
             return Err(RelationError::BatchLimit);
         }
+        // Bound borrowed input before copying either it or the current snapshot. The
+        // reference list is bounded by MAX_BATCH; the encoder never exceeds MAX_BYTES.
+        let incoming: Vec<&RawRecord> = changes
+            .iter()
+            .filter_map(|change| match change {
+                BatchChange::Insert(row) | BatchChange::Replace(row) => Some(row),
+                BatchChange::Delete { .. } => None,
+            })
+            .collect();
+        crate::codec::bounded_encode(&incoming)?;
+        for row in incoming {
+            for value in row.values.values() {
+                if let Value::Text(text) = value
+                    && text.len() > crate::MAX_TEXT_BYTES
+                {
+                    return Err(Error::LimitExceeded {
+                        resource: "text bytes",
+                        limit: crate::MAX_TEXT_BYTES,
+                    }
+                    .into());
+                }
+            }
+        }
         let mut candidate: BTreeMap<(TableId, RecordId), RawRecord> = self
             .records
             .records()

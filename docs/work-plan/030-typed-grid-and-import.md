@@ -1,7 +1,9 @@
 # 030 — Implement typed Leptos grid authoring and safe import
 
 Design issue: [EvoBase #4](https://github.com/loveoverflowcom/evobase/issues/4). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
-Status: proposed future implementation. Design pack: 02 grid/field/import/ref.
+Status: implemented experimental Leptos local-draft grid/import; final browser evidence is
+artifact-specific in [batch evidence](batch-evidence.md). Broader authoring/accessibility/native
+and hosted-session acceptance remain open. Design pack: 02 grid/field/import/ref.
 Skills: engineering + Web; UI inspector for scoped review evidence.
 
 ## Scope / non-goals
@@ -27,7 +29,11 @@ token adapter mounted by the app. Draft UI cannot silently mutate deployed schem
 - DOM/interaction/accessibility and inspected wide/narrow light/dark VI/EN/error/conflict frames;
   fake-backed local draft evidence is labeled, not hosted integration or CMP proof.
 
-## Future execution prompt
+## Original prompt and remaining acceptance
+
+The prompt below preserves the original target and gates. The current user-authorized batch
+delivered the experimental subset named above; it does not satisfy every original criterion.
+Follow up on the remaining gate rather than treating the complete prompt as implemented.
 
 > Select PR030 only after PR020 gate and pin reviewed M3 pack02. Inspect actual source owners and
 > build one real Leptos typed grid/field/import slice consuming Rust checked authoring commands.

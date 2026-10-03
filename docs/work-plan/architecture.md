@@ -1,6 +1,7 @@
 # Reboot contract and architectural decision gates
 
-Status: **selected target architecture and experimental foundation contract; host/runtime gates remain planned**.
+Status: **experimental checked Rust core and Leptos local Builder implemented; verified host/storage/native gates remain planned**.
+Execution scope and final artifact identities: [batch evidence](batch-evidence.md).
 Authority: [EvoBase #1](https://github.com/loveoverflowcom/evobase/issues/1), latest selected stack,
 and the reviewed design handoff. Earlier `re-design/` describes a Rust-DSL/generated-runtime vision; its chapters now point to the
 [reconciliation](../../re-design/README.md). [ADR010](decisions/010-foundation.md) selects version 1
@@ -28,26 +29,31 @@ Definition, tenant data and host bindings are separate. Stable table/field/recor
 labels/translations/order do not. Refs store identity; inverse edges/indexes are derived. Policy and
 command/formula share type vocabulary and binding graph; they have different effect semantics.
 
-| Boundary | Proposed owner / immediate consumer | Cannot own |
+| Boundary | Actual owner or planned seam / consumer | Cannot own |
 |---|---|---|
-| Raw/checked AppSpec + IDs/codecs | narrow Rust model/kernel crate, PR020 | DB/network/real grants |
-| Pure relation/formula/policy/command decisions | narrow Rust engine, PR040/050 | provider I/O, Kotlin copies |
-| Verified identity/registry/current grants | server host adapter, PR050 | client headers/portable artifact authority |
+| Raw/checked AppSpec + IDs/codecs | `crates/evobase-appspec`, consumed by vectors and Leptos | DB/network/real grants |
+| Pure relation/formula/policy/command decisions | `evobase-appspec::{relations,policy}`; local preview and checked host intents | provider I/O, Kotlin copies |
+| Verified identity/registry/current grants | `SessionVerifier` trusted seam; FixtureHost/simulated UI only so far, real API adapter remains PR050 work | client headers/portable artifact authority |
 | Fixed-store transactional executor | PostgreSQL host adapter, PR060 | editable derived truth, live network waits |
 | Durable worker + provider ports | host worker, PR100/110 | arbitrary native code, exactly-once claims |
-| Builder/Runtime presentation | Leptos/CMP mounted consumers, PR030/090 | trusted tenant routing or business authority |
+| Builder/Runtime presentation | `apps/evobase-builder` local Leptos consumer; hosted Runtime/CMP still planned | trusted tenant routing or business authority |
 | Canonical semantic design tokens/contracts | companion M3 source | independently regenerated renderer palettes |
 
-Proposed directory choices are resolved by the first real consumer, not scaffolded now. Prefer
-small extraction at existing seams over a generic plugin OS/event bus or one giant context crate.
-Current `evobase-core` mixes host/storage traits with shared types; do not assert it is already the
-target pure kernel. VOT model/engine depend on narrow identity/directory types; adapt just the
-needed invariants, not the whole authentication monorepo.
+The new independent kernel has direct serde/serde_json/thiserror dependencies. It was freshly
+authored; no private VOT product code was copied. Legacy `evobase-core` still owns the older
+host/storage traits and is not the new pure kernel. Definition-owned capture/policy/SubmitOrder
+rules prevent a separately edited semantic source; real host facts remain external.
+
+Formula support is currently a checked pure query API, not portable authoring/export. Every
+relation projection requires exact-definition/fact output authorization. The owner/role adapter
+rejects readable Ref fields and restricted complete relation scans rather than leaking a partial
+join/aggregate. `LocalPreviewPolicy` is for labeled synthetic local facts only. Broad query/policy
+coverage and a verified host adapter are prerequisites for hosted storage.
 
 ## Isolation and transactions
 
 Baseline candidate: database-per-tenant + provisioned fixed engine layout. User logical tables/
-fields/policies are metadata and typed records. Runtime has no DDL; provisioner/migrator uses
+fields/policies are metadata and typed records. In that planned profile, runtime must have no DDL; provisioner/migrator uses
 separate privileges/credentials. Host registry resolves DB from authenticated current membership;
 URL/body selectors never choose credentials. Current auth precedes receipt replay and dispatch.
 
@@ -78,7 +84,7 @@ projections/checked commands and approval; retrieved content never expands tool 
 |---|---|---|
 | AppSpec name/version/encoding/extension and bounded profiles | [selected in 010](decisions/010-foundation.md), evidence in 020 | version 1 JSON; golden compatibility + hostile decode + no authority/bindings in package |
 | Money/null/Blank/Ref/capture and supported cardinalities | [selected in 010](decisions/010-foundation.md), evidence in 020/040 | exact whole i64 Money; distinct Blank/Null; N:1/restrict; independent arithmetic/graph vectors; reject unsupported modes |
-| Host session/native identity + grants/policy subset | 050 | forged/revoked/wrong-scope/old-new/output-leak negatives |
+| Host session/native identity + grants/policy subset | 050 partly implemented | owner/role/SubmitOrder fixture negatives exist; verified session/API and unsupported output joins remain open |
 | DB fixed codec, lock/roles/pool/support envelope | 060 | two DBs, no-DDL catalogs, transactions/races/restart/bench |
 | Release activation and incompatible migration | 070/080 | immutable old pins, impact/backfill/cutover/recovery |
 | M3 token mapping and minimum renderer/platform targets | 030/090 | mounted source→adapter trace; DOM/native semantics + inspected pixels |
@@ -87,5 +93,6 @@ projections/checked commands and approval; retrieved content never expands tool 
 | VOT/legacy retirement | 150 | source inventory + independent EvoBase gates + recovery/data approval |
 
 Do not call any box implemented merely because its design screen, manifest or fixture exists.
-Current VOT kernel formats 4/5 and hosted Web/API 1–3 have different envelopes; new EvoBase profiles
-must be explicit. Tests/bench/provider/target evidence are future gates, not results of this document.
+The historical VOT handoff cites different native/hosted format envelopes; those sources were not
+freshly inspected here. EvoBase version 1 and its local profile are explicit. Executed test/vector
+evidence is in the batch record; DB/benchmark/provider/native acceptance remains future work.

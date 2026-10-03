@@ -1,14 +1,16 @@
 # 020 — Build a bounded checked AppSpec kernel
 
 Design issue: [EvoBase #4](https://github.com/loveoverflowcom/evobase/issues/4). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
-Status: proposed future implementation. Design pack: 02 data foundation.
+Status: implemented experimental kernel in `6fa7bb0`, extended by relation/policy commits.
+[Batch evidence](batch-evidence.md) records native/WASI vector scope; no storage/real authority.
+Design pack: 02 data foundation.
 Skills: engineering → AppSpec, boundary-hardening, functional-core, evidence.
 
 ## Why / scope
 
-Establish portable semantics before storage or GUI. Extract/adapt narrowly from pinned VOT model/
-engine with preserved notices and independent dependencies; current VOT native/host format profiles
-are not automatically EvoBase formats. One Customer/Order/OrderLine/Product definition plus typed
+Establish portable semantics before storage or GUI. The delivered `evobase-appspec` crate was
+freshly authored with independent dependencies; no private VOT product code was copied. The
+historical VOT handoff is reference guidance, not freshly inspected source or inherited test proof. One Customer/Order/OrderLine/Product definition plus typed
 input facts; no DB/auth session, general language, arbitrary scripts or visual product claims.
 
 ## Dependencies / risks
@@ -25,7 +27,11 @@ what is reusable. Replacing narrow identity dependencies must preserve resource-
 - No bindings/secrets/real host grants/tenant data in portable definition; checked plans not wire-trusted.
 - Native and WASM same vectors within advertised profile; tests fail for realistic bypass/regression.
 
-## Future execution prompt
+## Original prompt and remaining acceptance
+
+The prompt below preserves the original target and gates. The current user-authorized batch
+delivered the experimental subset named above; it does not satisfy every original criterion.
+Follow up on the remaining gate rather than treating the complete prompt as implemented.
 
 > After selection and PR010 review, pin the authorized base and import the reviewed contracts/skills.
 > Inspect VOT source at the provenance SHA, then build the smallest independent EvoBase raw/checked

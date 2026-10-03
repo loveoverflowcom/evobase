@@ -255,7 +255,8 @@ pub fn RelationInspector(locale: RwSignal<bool>) -> impl IntoView {
                 <button data-testid="relation-delete-product" on:click=restrict_delete>{move || tr(locale.get(), "Thử xóa sản phẩm", "Try deleting product")}</button>
             </div>
             <p class="status" data-state=move || if matches!(notice.get(), Notice::Error(_)) { "error" } else { "ready" } role="status" aria-live="polite" data-testid="relation-status">{move || message(locale.get(), &notice.get())}</p>
-            <div class="table-scroll">
+            <p class="support" id="relation-scroll-hint">{move || tr(locale.get(), "Cuộn ngang để xem giá đã chốt và thành tiền. Dùng phím mũi tên khi vùng bảng được chọn.", "Scroll horizontally to review captured prices and subtotals. Use arrow keys when the table region is focused.")}</p>
+            <div class="table-scroll" tabindex="0" aria-label=move || tr(locale.get(), "Bảng so sánh giá và thành tiền", "Price and subtotal comparison") aria-describedby="relation-scroll-hint">
                 <table data-testid="relation-lines">
                     <caption>{move || tr(locale.get(), "Dòng hàng tham chiếu đơn rec_order_1", "Lines referencing order rec_order_1")}</caption>
                     <thead><tr>

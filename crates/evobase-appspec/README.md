@@ -62,3 +62,35 @@ grant; hosts with row restrictions must reject that unsupported projection befor
 `LocalPreviewPolicy` is solely for labeled synthetic local previews and supplies no hosted authority.
 Run `cargo test -p evobase-appspec --test relations` for capture/history, final-state rollback,
 independent adjacency/arithmetic oracles, bounded expressions and snapshot/output-policy vectors.
+
+## Canonical policies and checked commands
+
+Optional `RawAppSpec.policies` and `submit_rules` own the portable policy and SubmitOrder
+definitions. Each list is bounded to 64 rules; rule IDs are unique and each table has at most
+one owner policy. Checked constructors require exact membership in the canonical definition
+and pin that definition. `TrustedContext`, `CheckedProjection` and `CheckedCommandBatch` have
+private construction and no Deserialize implementation. AppSpec role names never supply host
+identity, membership or grants.
+
+`HostAuthority` accepts a trusted `SessionVerifier` adapter and resolves verified actor, current
+scoped membership, independent capabilities and registry binding for every operation. Missing,
+expired, revoked, wrong-scope and disallowed browser-origin contexts deny. The implemented
+policy is owner equality OR an explicitly allowed current role, combined with the required host
+grant. Query, picker, lookup and export filter rows and scalar fields before returning output;
+counts and scalar sums use only visible rows. Hidden and absent lookups both return None.
+Ref output, joins and SQL/RLS translation are unsupported and reject. `CurrentOutputPolicy`
+attests the exact checked facts/definition and rechecks current grants for record and field
+access. Restricted complete reverse/aggregate scans remain denied, including empty scans.
+
+SubmitOrder permits normalized notes and bounded line quantities, checks old/new owner policy
+and draft/nonempty-order guards, and preserves owner, scope, references and captured prices.
+Its opaque batch carries expected data, membership and policy revisions for a host adapter.
+The in-memory `ReceiptBook` demonstrates exact normalized key/intent replay and changed-intent
+conflict; current grants and row permission are checked before replay, including after revocation.
+It implements no persistent receipt or atomic commit.
+
+The Builder adapter uses explicitly simulated identity/grants and a resettable in-memory facts
+snapshot. Real session/API adapters, managed release routing, database revision checks and atomic
+rows/audit/receipt persistence remain host/concurrency gates. Run
+`cargo test -p evobase-appspec --test policy` and `cargo test -p evobase-appspec --doc` for the
+negative authority, output, command, canonical-source and checked-deserialization boundaries.

@@ -414,6 +414,77 @@ fn retargeting_an_ordinary_ref_updates_only_derived_edges_and_rollups() {
 }
 
 #[test]
+fn untrusted_batch_payload_and_expanded_optional_fields_reject_atomically() {
+    let mut store = store(20, Value::Integer(3));
+    let snapshot = store.records().to_raw();
+    let mut oversized = raw(&store, "product", "product");
+    oversized.values.insert(
+        field("product_name"),
+        Value::Text("x".repeat(MAX_TEXT_BYTES + 1)),
+    );
+    assert_eq!(
+        store.apply_batch(vec![BatchChange::Replace(oversized)]),
+        Err(RelationError::Kernel(Error::LimitExceeded {
+            resource: "text bytes",
+            limit: MAX_TEXT_BYTES
+        }))
+    );
+    assert_eq!(store.records().to_raw(), snapshot);
+    let oversized_batch = (0..64)
+        .map(|n| {
+            BatchChange::Insert(row(
+                "product",
+                &format!("large_{n}"),
+                vec![
+                    ("product_name", Value::Text("x".repeat(MAX_TEXT_BYTES))),
+                    ("product_price", Value::Money(1)),
+                ],
+            ))
+        })
+        .collect();
+    assert_eq!(
+        store.apply_batch(oversized_batch),
+        Err(RelationError::Kernel(Error::LimitExceeded {
+            resource: "bytes",
+            limit: MAX_BYTES
+        }))
+    );
+    assert_eq!(store.records().to_raw(), snapshot);
+
+    let mut definition = schema().definition().clone();
+    definition.tables.push(RawTable {
+        id: table("sparse"),
+        name: "Sparse".to_owned(),
+        fields: (0..128)
+            .map(|n| RawField {
+                id: field(&format!("sparse_{n:03}")),
+                name: format!("Optional {n}"),
+                required: false,
+                field_type: FieldType::Text,
+            })
+            .collect(),
+    });
+    let mut sparse =
+        RelationStore::new(CheckedAppSpec::compile(definition).unwrap(), scope()).unwrap();
+    let compact_rows = (0..80)
+        .map(|n| row("sparse", &format!("sparse_{n:03}"), vec![]))
+        .collect::<Vec<_>>();
+    assert!(serde_json::to_vec(&compact_rows).unwrap().len() < MAX_BYTES);
+    assert_eq!(
+        sparse.apply_batch(compact_rows.into_iter().map(BatchChange::Insert).collect()),
+        Err(RelationError::Kernel(Error::LimitExceeded {
+            resource: "nodes",
+            limit: MAX_NODES
+        }))
+    );
+    assert_eq!(
+        sparse.records().records().len(),
+        0,
+        "normalizing absent fields must not publish an oversized checked state"
+    );
+}
+
+#[test]
 fn malformed_references_return_exact_diagnostics_without_partial_facts() {
     for (bad_ref, expected) in [
         (

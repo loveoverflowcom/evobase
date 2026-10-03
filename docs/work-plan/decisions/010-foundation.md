@@ -1,6 +1,7 @@
 # 010 — AppSpec foundation and host seams
 
-Status: **selected experimental contract for the current refactor batch; documented E0 decisions**.
+Status: **implemented experimental version 1 contract; hosted/native/product expansion gates remain open**.
+Executed checks and artifact scope are recorded in [batch evidence](../batch-evidence.md).
 Date: 2026-10-03. Authority: [EvoBase #1](https://github.com/loveoverflowcom/evobase/issues/1),
 [foundation issue #3](https://github.com/loveoverflowcom/evobase/issues/3) and the user's request
 for approximately five sequential commits on `develop`. This ADR is not runtime acceptance,
@@ -17,8 +18,10 @@ A reusable definition describes meaning and never supplies runtime data or trust
 A rename/reorder cannot change a stored relationship or business rule. The Rust core is the
 semantic owner; browser and future native UI project its checked result. Failure modes are
 silently divergent rules, relationship drift, secret/data leakage in templates and forged access.
-The cheapest adequate oracle is bounded positive/negative codec and scope vectors through the
-public checked constructors; independent relation/arithmetic vectors follow in the next commits.
+The oracle is bounded positive/negative codec and scope vectors through the public checked
+constructors plus independent relation/arithmetic vectors. The implementation lives in
+`crates/evobase-appspec`; Leptos consumes it in `apps/evobase-builder`. Evidence applies only to
+executed targets/scenarios, not the entire product vision.
 
 ## Version 1 definition
 
@@ -26,7 +29,8 @@ Select standard UTF-8 JSON with `version: 1`; no separate profile selector and n
 extension bag. Use `.evobase.json` for the definition interchange filename, not a binary ZIP or
 an XLSX authority. The public Rust schema and reviewed golden examples own the precise shape:
 
-- Top-level keys: `version`, `app_id`, `name`, `tables`; optional `capture_rules` defaults to empty.
+- Top-level keys: `version`, `app_id`, `name`, `tables`; optional `capture_rules`, `policies` and
+  `submit_rules` default to empty and are omitted from canonical output when empty.
 - A table has stable `id`, presentation `name` and `fields`. A field has stable `id`, presentation
   `name`, `required` (defaults to false) and `field_type`.
 - `field_type` is tagged by `type`: `text`, `integer`, `bool`, `money`, or `ref`; `ref` additionally
@@ -34,15 +38,22 @@ an XLSX authority. The public Rust schema and reviewed golden examples own the p
 - Optional capture rules name `line_table`, `product_ref_field`, `product_price_field` and
   `captured_price_field` by stable IDs. Compilation checks Ref target and Money types. Empty
   capture rules are omitted from canonical output. They define capture semantics, not live facts.
-- Canonical encoding orders tables and fields lexically by stable ID. Canonical round-trip is a
-  compatibility check, not authorization. Labels/localization/order never supply identity.
+- Optional `policies` hold typed owner/current-role rules: `rule_id`, `revision`, `table_id`,
+  `owner_field`, readable-field allowlist and read/write/submit abstract-role lists. Optional
+  `submit_rules` hold typed SubmitOrder guards, referencing their policy and order/line field IDs.
+  Rule IDs start with `rule_`, are at most 96 ASCII letters/digits/underscores and are globally
+  unique across both lists. Each list is limited to 64 rules, with at most one policy per table.
+  Role IDs start with `role_` and follow the same 96-byte character limit. These are abstract
+  roles; membership, current grants and verified actor identities are not portable fields.
+- Canonical encoding orders tables/fields by stable ID, captures by table/destination field and
+  policies/submit rules by rule ID. Canonical round-trip is a compatibility check, not authorization.
+  Labels/localization/order never supply identity.
 
 Definitions contain no records, tenant selector, actor/grant, password, database URL, connector
 account, secret handle or runtime receipt. Runtime records have their own bounded checked input;
-host bindings belong to future host storage. The final selected commit may add a bounded pure
-policy/command experiment using supplied facts; it does not make those facts verified host grants.
-Do not accept a serialized checked plan as proof of
-validation. Checked definitions and checked record sets have private construction and no
+host bindings belong to future host storage. The bounded pure policy/command experiment uses
+supplied facts; it does not make those facts verified host grants. Do not accept a serialized
+checked plan as proof of validation. Checked definitions and checked record sets have private construction and no
 `Deserialize` implementation; a raw decoded definition is still untrusted.
 
 `version` versions only this definition encoding and semantics. Future immutable release identity,
@@ -55,12 +66,15 @@ and compatibility evidence; relabeling a legacy artifact is not a migration.
 Use separate app/table/field/record ID types. Their spellings start with `app_`, `tbl_`, `fld_` or
 `rec_`, followed by 1–76 ASCII letters/digits/underscore/hyphen, with an overall maximum of
 80 bytes. IDs are validated at every public construction/decoding path. Uniqueness and references
-are checked at their appropriate app/table scope; display labels need not be unique.
+are checked at their appropriate scope: table/field IDs are unique throughout a definition,
+record IDs within `(table_id, record_id)`. Display labels need not be unique.
 
 Initial values are Text, Integer, Bool, Money, Ref, Blank and Null. Blank is an unfilled input;
 Null is an explicit absent value. The wire variants remain distinct; required fields reject both,
-optional fields admit either. They are not silently converted to zero, false or an empty string.
-A Text field may store an empty string independently of Blank.
+optional fields admit either, and an absent optional field normalizes to Blank. They are not
+converted to zero, false or an empty string. Typed text authoring uses empty input for Blank and
+`null` for Null; the `text:` escape permits literal text (`text:null`, `text:`,
+`text:text:literal`). A Text value may store an empty string independently of Blank.
 
 Money is a signed `i64` count of whole minor units and uses an exact tagged JSON integer. Integer
 and Money are distinct types. Arithmetic uses checked operations; fractions, exponent/float
@@ -80,21 +94,31 @@ until their own semantics/conformance gates. Refs never grant permission to see 
 
 The selected kernel budget is 1 MiB JSON, depth 16, 20,000 JSON nodes, 64 tables, 256 fields per
 table, 2,048 total fields, 4,096 runtime records, 256-byte names and 16,384-byte text values.
-Bounds apply before expensive traversal/compilation; hostile input must return typed diagnostics,
-not panic or silently truncate. Duplicate keys/IDs and incompatible references need explicit
-negative vectors. Formula evaluation gets a separate bounded, nonrecursive budget in its owning
-commit; this ADR does not promise a general expression language.
+The byte/depth/node budget applies to decode and also bounded serialization in direct compile
+and record-validation entrypoints. Bounds intersect; their maximum counts cannot necessarily be
+combined. Unknown/duplicate keys, unsupported tags, duplicate IDs and incompatible references
+reject with diagnostics. Raw DTO deserialization alone never constructs checked values.
+
+The formula query API compiles Field, one-hop Lookup, reverse Sum, Product, Total and acyclic Named
+reuse. Defaults are 256 evaluated nodes, depth 24 and 1,024 visited records (including scanned
+child candidates). Arithmetic is checked; Integer × Money yields Money, Money × Money rejects.
+These are checked pure query APIs, not editable portable formula declarations: formula authoring
+and export remain deferred. Every relation output needs an explicit policy attesting the exact
+checked definition/facts. Complete scans require a data-independent full-table grant; the
+owner/role adapter denies them rather than partially leaking a restricted join/aggregate.
 
 ## Real consumers and target boundaries
 
-The first immediate consumer is a native Rust checked-kernel test suite, followed by a Leptos
-browser local-draft Builder. Keep the kernel independent of SQL/network/clock/auth grants; bind
-I/O at the host. Test native and WASM semantics separately before making cross-target claims.
+The immediate consumers are native/WASI checked-kernel vectors and a Leptos browser local-draft
+Builder. Keep the kernel independent of SQL/network/clock/auth grants; bind I/O at the host.
+The batch compares shared native/WASI conformance output; browser/WASM rendering has its own
+artifact identity and fresh scenario checks in the [evidence record](../batch-evidence.md).
 The existing Rust workspace declares edition 2024 and minimum Rust 1.89 at the pinned baseline;
 actual compiler/Leptos versions and executed targets belong to implementation evidence.
 
-The browser profile edits a local draft and local example records, shows typed diagnostics and
-preview, and can exchange a definition. It is neither a published release nor an authenticated
+The browser profile edits a local draft and synthetic example records, shows typed diagnostics,
+bounded TSV imports and relation/policy preview. Its localStorage snapshot carries opaque canonical
+definition/record JSON strings and is checked again on restore. It is neither a published release nor an authenticated
 multi-tenant host. Builder/Runtime navigation and compact Builder summary remain separate from
 native CMP behavior. CMP Runtime is the selected mobile direction; no CMP package, toolchain,
 Android/iOS execution or native acceptance is established by this ADR.
@@ -112,14 +136,20 @@ or live connector action. A saved definition is not consent to deploy or send an
 
 ## Bounded policy/command experiment
 
-Commit 5 selects an owner-or-current-role policy with an explicit readable-field allowlist and
-read/write/submit role lists, plus a typed SubmitOrder guard using state/notes, line Ref, quantity
-and captured price. This experiment uses companion checked Rust configuration; it adds no raw
-version 1 definition keys. It is not yet portable policy authoring/publishing. The browser presents
-its supplied actor/roles/grants as simulated facts, never a verified session. Row/field expressions,
-SQL/RLS translation, subscriptions and a trusted server adapter remain unsupported. Any future
-portable policy/configuration must enter the single versioned AppSpec contract with compatibility
-and authoring evidence, rather than become a separately edited rule source.
+The owner-or-current-role policy and typed SubmitOrder rule are now definition-owned in `policies`
+and `submit_rules`; their checked constructors reject out-of-definition rule/configuration swaps.
+The command checks state/notes, line Ref, quantity and captured price and returns an opaque checked
+write/audit/receipt intent. It does not commit a database transaction. Current host/session facts
+are resolved through the `SessionVerifier` seam for every query/command and before receipt replay.
+Tests use a FixtureHost, and the browser presents supplied actor/roles/grants as simulated facts.
+Neither path implements a verified authentication provider or transport/API adapter.
+
+The read allowlist rejects Ref output fields; arbitrary policy joins, restricted complete relation
+scans, SQL/RLS translation, subscriptions and durable receipt storage are unsupported. The pure
+policy layer provides scoped row/field projections, picker/lookup/export-purpose projections and
+visible aggregates within this subset. Portable rule encoding is available, but a general
+structured rule authoring/publishing journey remains a future gate. The host must atomically commit
+expected revision, facts, derived structures, audit, outbox and receipt before claiming persistence.
 
 ## Design and deferred gates
 
@@ -127,13 +157,14 @@ Keep `design/m3-expressive/source/tokens.json` as the single authored token sour
 font notices and component/state/accessibility contracts. Real adapters must trace source → output
 → mounted consumer. Static SVG/PNG fixtures do not prove that trace or pixels in Leptos/CMP.
 
-| Gate | Evidence still needed beyond this document |
+| Gate | Delivered subset and remaining evidence |
 |---|---|
-| Kernel | Golden canonical/historical/hostile vectors, private-construction audit, native/WASM execution. |
-| Grid/import | Typed errors, ambiguity resolution, keyboard/IME/paste, stale/saving/conflict states; no hidden precision loss. |
-| Relations/formulas | Independent wrong-scope/missing-target/restrict-delete/capture/overflow/cycle vectors. |
-| Foundation shell #3 | Mounted token/nav trace, light/dark, focus, VI/EN, reduced motion, zoom/text scaling, unsent draft preservation; separate native gates. |
-| Hosted security/storage | Verified current identity and policy negatives, two real DBs, separate privileges, no-DDL catalog and atomic transaction/concurrency/restart evidence. |
+| Kernel | Bounded checked definitions/facts and native/WASI vectors implemented; cross-target claims are limited to the recorded vectors. |
+| Grid/import | Mounted Leptos local draft, exact typed edits/TSV and interruption/conflict controls implemented; final browser artifact/scenario evidence owns coverage, with broad accessibility/native/hosted gaps still open. |
+| Relations/formulas | N:1/restrict, captures and bounded pure query projections implemented; 1:1/N:M, portable formula authoring/export and general restricted policy joins remain deferred. |
+| Foundation shell #3 | Canonical Web token adapter and compact read-only draft are mounted; real host session/Runtime routing and separate native CMP acceptance remain unimplemented. |
+| Policy/commands #6 | Definition-owned owner/role rules and SubmitOrder checked intents implemented with fixture host facts; verified session/API and transactional receipts remain unimplemented. |
+| Hosted security/storage | Two real DBs, separate privileges, no-DDL catalogs and atomic transaction/concurrency/restart evidence required after verified host adapter. |
 | Broader vision | Immutable release/evolution, native Runtime, durable functions, real providers and portability/recovery before Votable retirement. |
 
 This foundation resolves the minimal implementation contract and preserves historical source and

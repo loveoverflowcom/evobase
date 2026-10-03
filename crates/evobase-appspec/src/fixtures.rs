@@ -85,7 +85,47 @@ pub fn example_spec() -> RawAppSpec {
             product_price_field: FieldId::new("fld_product_price").expect("fixture identity"),
             captured_price_field: FieldId::new("fld_line_price").expect("fixture identity"),
         }],
+        policies: vec![],
+        submit_rules: vec![],
     }
+}
+
+/// Explicit owner-policy/command demonstration. Host capabilities and identities are absent.
+pub fn example_policy_spec() -> RawAppSpec {
+    use crate::policy::{RawOwnerRolePolicy, RawSubmitOrderRule, RoleId};
+    let mut definition = example_spec();
+    definition.policies.push(RawOwnerRolePolicy {
+        rule_id: "rule_order_owner".to_owned(),
+        revision: 1,
+        table_id: TableId::new("tbl_orders").expect("fixture identity"),
+        owner_field: FieldId::new("fld_order_owner").expect("fixture identity"),
+        read_fields: ["fld_order_state", "fld_order_notes"]
+            .into_iter()
+            .map(|id| FieldId::new(id).expect("fixture identity"))
+            .collect(),
+        read_roles: [RoleId::new("role_auditor").expect("fixture role")]
+            .into_iter()
+            .collect(),
+        write_roles: [RoleId::new("role_editor").expect("fixture role")]
+            .into_iter()
+            .collect(),
+        submit_roles: [RoleId::new("role_operator").expect("fixture role")]
+            .into_iter()
+            .collect(),
+    });
+    definition.submit_rules.push(RawSubmitOrderRule {
+        rule_id: "rule_submit_order".to_owned(),
+        revision: 1,
+        policy_rule_id: "rule_order_owner".to_owned(),
+        order_table: TableId::new("tbl_orders").expect("fixture identity"),
+        state_field: FieldId::new("fld_order_state").expect("fixture identity"),
+        notes_field: FieldId::new("fld_order_notes").expect("fixture identity"),
+        line_table: TableId::new("tbl_order_lines").expect("fixture identity"),
+        line_order_field: FieldId::new("fld_line_order").expect("fixture identity"),
+        quantity_field: FieldId::new("fld_line_quantity").expect("fixture identity"),
+        captured_price_field: FieldId::new("fld_line_price").expect("fixture identity"),
+    });
+    definition
 }
 
 fn record(scope: &Scope, table: &str, id: &str, values: Vec<(&str, Value)>) -> RawRecord {

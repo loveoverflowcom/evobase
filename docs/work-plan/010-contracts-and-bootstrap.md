@@ -1,8 +1,9 @@
 # 010 — Resolve reboot contracts and bootstrap decisions
 
 Design issue: [EvoBase #3](https://github.com/loveoverflowcom/evobase/issues/3). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
-Status: selected as commit 1 of the authorized `develop` batch; docs decisions recorded in
-[ADR010](decisions/010-foundation.md). Docs are draft evidence; the owning issue still has browser/native acceptance gates.
+Status: E0 documented and imported in `6e14972`; experimental Web consumer added later.
+[ADR010](decisions/010-foundation.md) and [batch evidence](batch-evidence.md) own actual scope.
+Issue #3 remains open for unfinished host/session/native and broader shell acceptance.
 Design pack: 01 foundation/shell/identity decision. Skills: engineering, Web/CMP as design criteria, review.
 
 ## Why / boundary

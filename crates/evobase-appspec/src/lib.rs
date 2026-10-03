@@ -5,6 +5,7 @@ mod error;
 pub mod fixtures;
 mod id;
 mod model;
+pub mod policy;
 pub mod relations;
 mod value;
 

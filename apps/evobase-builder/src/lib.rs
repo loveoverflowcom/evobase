@@ -1,5 +1,6 @@
 //! A mounted local-only Builder. Checked Rust definitions own validation;
 //! browser state owns unsaved input, selection, focus and local persistence.
+pub mod policy;
 pub mod relations;
 
 use evobase_appspec::relations::{BatchChange, LocalPreviewPolicy, RelationError, RelationStore};
@@ -913,9 +914,9 @@ pub fn App() -> impl IntoView {
                 </nav>
                 <main class="workspace">
                     <section class="overview">
-                        <span class="eyebrow">"Builder / AppSpec"</span>
+                        <span class="eyebrow">{move || tr(locale.get(), "Builder / Bản nháp", "Builder / Draft")}</span>
                         <h1>{move || tr(locale.get(), "Định hình dữ liệu của bạn", "Shape your application data")}</h1>
-                        <p>{move || tr(locale.get(), "Chỉnh sửa bản nháp cục bộ, kiểm tra kiểu dữ liệu bằng Rust và giữ lại trên trình duyệt. Bản nháp chưa được phát hành.", "Edit a local draft, check typed data in Rust, and keep it in this browser. This draft is not published.")}</p>
+                        <p>{move || tr(locale.get(), "Chỉnh sửa bản nháp cục bộ, kiểm tra kiểu dữ liệu và giữ lại trên trình duyệt. Bản nháp chưa được phát hành.", "Edit a local draft, check typed data, and keep it in this browser. This draft is not published.")}</p>
                     </section>
                     <div class="toolbar">
                         <div><h2>{move || spec.get().tables.iter().find(|t| t.id == table_id.get()).map(|t| t.name.clone()).unwrap_or_default()}</h2>
@@ -933,7 +934,7 @@ pub fn App() -> impl IntoView {
                             Status::Dirty => tr(locale.get(), "Có thay đổi chưa được giữ trên thiết bị", "Changes are not yet saved on this device"),
                             Status::Saved => tr(locale.get(), "Đã giữ nháp trên thiết bị · chưa đồng bộ máy chủ", "Saved on this device · not synchronized to a server"),
                             Status::Invalid => tr(locale.get(), "Kiểm tra trường được đánh dấu. Nội dung nhập được giữ nguyên.", "Check the marked fields. Your input is preserved."),
-                            Status::Conflict => tr(locale.get(), "Nháp đã thay đổi ở cửa sổ khác. Nội dung hiện tại được giữ; tải lại để xem bản đã lưu.", "The draft changed in another tab. Your input is preserved; reload to review the saved draft."),
+                            Status::Conflict => tr(locale.get(), "Nháp đã thay đổi ở cửa sổ khác. Nội dung hiện tại còn trong cửa sổ này. Tải lại sẽ bỏ thay đổi chưa lưu để xem nháp đã lưu.", "The draft changed in another tab. Your input remains in this window. Reload discards unsaved changes to review the saved draft."),
                             Status::Expired => tr(locale.get(), "Mô phỏng phiên hết hạn · nháp giữ nguyên", "Simulated expired session · draft preserved"),
                             Status::Unsupported => tr(locale.get(), "Trình duyệt chưa hỗ trợ khóa ghi giữa các cửa sổ. Nháp được giữ trong cửa sổ này; dùng trình duyệt mới để lưu an toàn.", "This browser does not support cross-tab write locks. Your draft remains in this window; use a current browser to save safely."),
                             Status::StorageError => tr(locale.get(), "Không thể đọc hoặc giữ nháp trên thiết bị. Nội dung hiện tại vẫn còn trong cửa sổ này.", "Local storage could not be read or written. Current input remains in this window."),
@@ -1012,11 +1013,12 @@ pub fn App() -> impl IntoView {
                                     <Show when=move || errors.get().contains_key("field") || errors.get().contains_key("definition")><p class="error-panel" role="alert" id="app-name-error">{move || { let diagnostics = errors.get(); diagnostics.get("field").or_else(|| diagnostics.get("definition")).cloned().unwrap_or_default() }}</p></Show>
                                 </section>
                                 <relations::RelationInspector locale/>
+                                <policy::PolicyInspector spec rows=records table_id locale saving=saving paused=paused on_source_change=Callback::new(move |_| status.set(Status::Dirty))/>
                                 <section class="surface"><details><summary>{move || tr(locale.get(), "Mô phỏng gián đoạn", "Interruption simulation")}</summary><p class="support">{move || tr(locale.get(), "Chỉ thử trạng thái cục bộ. Không có đăng nhập hay phiên máy chủ.", "Local state exercise only. There is no sign-in or server session.")}</p><button data-testid="session-toggle" disabled=move || saving.get() on:click=move |_| { paused.update(|v| *v = !*v); status.set(if paused.get_untracked() { Status::Expired } else { Status::Dirty }); }>{move || tr(locale.get(), if paused.get() { "Tiếp tục chỉnh nháp" } else { "Mô phỏng phiên hết hạn" }, if paused.get() { "Resume draft editing" } else { "Simulate session expiry" })}</button></details></section>
                             </aside>
                         </div>
                     </div>
-                    <footer class="footer">{move || tr(locale.get(), "Rust kiểm tra dữ liệu · bộ nhớ trình duyệt giữ nháp · không phát hành / không cấp quyền truy cập", "Rust checks data · browser storage keeps drafts · no publishing / no authority granted")}</footer>
+                    <footer class="footer">{move || tr(locale.get(), "Kiểm tra dữ liệu · giữ nháp trong trình duyệt · chưa phát hành", "Checked data · draft kept in this browser · not published")}</footer>
                 </main>
             </div>
         </div>

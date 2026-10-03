@@ -27,6 +27,8 @@ pub enum Error {
     UnknownField { table: TableId, field: FieldId },
     #[error("invalid capture rule: {reason}")]
     InvalidCapture { reason: String },
+    #[error("invalid or unsupported policy/command rule: {rule_id}")]
+    InvalidPolicy { rule_id: String },
     #[error("expected app {expected}; received app {actual}")]
     WrongApp { expected: AppId, actual: AppId },
     #[error("record {record} crosses the expected scope")]

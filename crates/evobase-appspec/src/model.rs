@@ -14,6 +14,10 @@ pub struct RawAppSpec {
     pub tables: Vec<RawTable>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub capture_rules: Vec<CaptureRule>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub policies: Vec<crate::policy::RawOwnerRolePolicy>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub submit_rules: Vec<crate::policy::RawSubmitOrderRule>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -135,16 +139,22 @@ impl CheckedAppSpec {
         }
         for table in &definition.tables {
             for field in &table.fields {
-                if let FieldType::Ref { target_table } = &field.field_type {
-                    if !table_ids.contains(target_table) {
-                        return Err(Error::UnknownTable(target_table.clone()));
-                    }
+                if let FieldType::Ref { target_table } = &field.field_type
+                    && !table_ids.contains(target_table)
+                {
+                    return Err(Error::UnknownTable(target_table.clone()));
                 }
             }
         }
         definition.capture_rules.sort_by(|a, b| {
             (&a.line_table, &a.captured_price_field).cmp(&(&b.line_table, &b.captured_price_field))
         });
+        definition
+            .policies
+            .sort_by(|a, b| a.rule_id.cmp(&b.rule_id));
+        definition
+            .submit_rules
+            .sort_by(|a, b| a.rule_id.cmp(&b.rule_id));
         let spec = Self { definition };
         let mut captured = BTreeSet::new();
         let capture_targets: BTreeSet<_> = spec
@@ -196,8 +206,51 @@ impl CheckedAppSpec {
                 });
             }
         }
-        // compile(raw) must honor the same byte envelope as decode(bytes).
+        // Bound the complete definition before cloning it into checked policy rules.
         crate::codec::bounded_encode(&spec.definition)?;
+        if spec.definition.policies.len() > 64 || spec.definition.submit_rules.len() > 64 {
+            return Err(Error::LimitExceeded {
+                resource: "policy/command rules",
+                limit: 64,
+            });
+        }
+        let mut rule_ids = BTreeSet::new();
+        let mut policy_tables = BTreeSet::new();
+        let mut policies = Vec::new();
+        for rule in &spec.definition.policies {
+            if !rule_ids.insert(rule.rule_id.clone())
+                || !policy_tables.insert(rule.table_id.clone())
+            {
+                return Err(Error::InvalidPolicy {
+                    rule_id: rule.rule_id.clone(),
+                });
+            }
+            policies.push(
+                crate::policy::OwnerRolePolicy::check(&spec, rule.clone()).map_err(|_| {
+                    Error::InvalidPolicy {
+                        rule_id: rule.rule_id.clone(),
+                    }
+                })?,
+            );
+        }
+        for rule in &spec.definition.submit_rules {
+            if !rule_ids.insert(rule.rule_id.clone()) {
+                return Err(Error::InvalidPolicy {
+                    rule_id: rule.rule_id.clone(),
+                });
+            }
+            let policy = policies
+                .iter()
+                .find(|policy| policy.rule_id() == rule.policy_rule_id)
+                .ok_or_else(|| Error::InvalidPolicy {
+                    rule_id: rule.rule_id.clone(),
+                })?;
+            crate::policy::SubmitOrderRule::check(&spec, policy, rule.clone()).map_err(|_| {
+                Error::InvalidPolicy {
+                    rule_id: rule.rule_id.clone(),
+                }
+            })?;
+        }
         Ok(spec)
     }
     pub fn definition(&self) -> &RawAppSpec {

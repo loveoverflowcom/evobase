@@ -1,7 +1,10 @@
 # 040 — Deliver stable relations, captured prices and pure rollups
 
 Design issue: [EvoBase #5](https://github.com/loveoverflowcom/evobase/issues/5). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
-Status: proposed future implementation. Design pack: 03 relations/formulas.
+Status: implemented experimental N:1/restrict, captures and bounded pure query APIs plus local
+browser inspector. [Batch evidence](batch-evidence.md) records executed vectors. Portable formula
+authoring/export, advanced cardinalities and complete restricted policy joins remain open.
+Design pack: 03 relations/formulas.
 Skills: engineering → relations/AppSpec; Web for relation inspector/formula projection.
 
 ## Scope / dependencies
@@ -10,6 +13,14 @@ Skills: engineering → relations/AppSpec; Web for relation inspector/formula pr
 lookup/rollup and captured whole-money OrderLine value. Relation builder chooses target/display/
 required/delete contract. Unsupported 1:1/N:M/delete/recursive formula options reject visibly;
 full vision expansions remain in backlog, not falsely completed here.
+
+## Delivered boundary
+
+The formula subset is currently `CheckedFormulas` query APIs: Field, Lookup, reverse Sum, Product,
+Total and acyclic Named reuse. It does not add portable formula declarations to version 1 or
+provide formula editing/export. An explicit current output policy must attest exact definition/
+facts; complete scans need a data-independent full-table grant. The owner/role host adapter
+rejects unsupported restricted relation scans. Local preview is clearly simulated.
 
 ## Acceptance / required tests
 
@@ -23,7 +34,11 @@ full vision expansions remain in backlog, not falsely completed here.
 - Builder uses same checked semantics and explains diagnostic/source IDs; current-output-policy seam
   is explicit, no relation-based grant before PR050.
 
-## Future execution prompt
+## Original prompt and remaining acceptance
+
+The prompt below preserves the original target and gates. The current user-authorized batch
+delivered the experimental subset named above; it does not satisfy every original criterion.
+Follow up on the remaining gate rather than treating the complete prompt as implemented.
 
 > After selecting this item, pin PR020/030 and design pack03. Inspect reusable VOT Ref/rollup/capture
 > contracts and implement one narrow authoritative Rust relation/formula slice plus its Leptos

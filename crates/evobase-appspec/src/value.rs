@@ -196,13 +196,13 @@ impl CheckedAppSpec {
                             expected: field.field_type.name(),
                         });
                     }
-                    if let Value::Text(text) = value {
-                        if text.len() > MAX_TEXT_BYTES {
-                            return Err(Error::LimitExceeded {
-                                resource: "text bytes",
-                                limit: MAX_TEXT_BYTES,
-                            });
-                        }
+                    if let Value::Text(text) = value
+                        && text.len() > MAX_TEXT_BYTES
+                    {
+                        return Err(Error::LimitExceeded {
+                            resource: "text bytes",
+                            limit: MAX_TEXT_BYTES,
+                        });
                     }
                     if let Value::Ref(reference) = value {
                         if &reference.scope != scope {
@@ -284,16 +284,16 @@ impl CheckedAppSpec {
                 table: table.clone(),
                 field: field.clone(),
             })?;
-        if definition.field_type == FieldType::Text {
-            if let Some(literal) = text.strip_prefix("text:") {
-                if literal.len() > MAX_TEXT_BYTES {
-                    return Err(Error::LimitExceeded {
-                        resource: "text bytes",
-                        limit: MAX_TEXT_BYTES,
-                    });
-                }
-                return Ok(Value::Text(literal.to_owned()));
+        if definition.field_type == FieldType::Text
+            && let Some(literal) = text.strip_prefix("text:")
+        {
+            if literal.len() > MAX_TEXT_BYTES {
+                return Err(Error::LimitExceeded {
+                    resource: "text bytes",
+                    limit: MAX_TEXT_BYTES,
+                });
             }
+            return Ok(Value::Text(literal.to_owned()));
         }
         if text.is_empty() {
             return Ok(Value::Blank);

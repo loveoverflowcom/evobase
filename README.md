@@ -9,13 +9,13 @@ The selected stack is **Rust core/backend, Leptos web and Compose Multiplatform 
 Leptos owns Builder and browser Runtime. CMP starts with mobile Runtime: permitted lists, record
 forms and actions. SQL and expert Rust syntax are adapters/frontends, not prerequisites for users.
 
-## Current, selected and deferred
+## Current and remaining scope
 
 | State | Scope and evidence |
 |---|---|
 | Existing baseline | Rust/PostgreSQL table gateway, JWT authentication, introspection and RAM SSE/relay; Flutter client/workbench. Source exists at `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`; this is not an AppSpec host or a durable worker. |
-| Selected experimental refactor | Version 1 JSON definition contract; bounded checked Rust kernel; typed local draft grid/import; N:1 relations, captured values and bounded formulas; a simulated policy/command inspector. Browser local drafts have no authenticated host authority. The current five-commit batch is tracked in the [work plan](docs/work-plan/README.md). |
-| Planned host/runtime | Verified current session/grants, row/field policies and checked commands, database-per-tenant fixed store, immutable releases and schema evolution, native CMP Runtime, durable automation. These require their own acceptance evidence. |
+| Implemented experimental slice | `evobase-appspec` owns bounded version 1 definitions/facts, exact values, N:1/restrict/captures, bounded pure query formulas and definition-owned owner/role/SubmitOrder rules. The Leptos Builder mounts typed local drafts/import plus relation/policy previews. Browser facts are local/simulated; formulas are query APIs, with portable formula authoring/export still deferred. See [batch evidence](docs/work-plan/batch-evidence.md) for executed scope. |
+| Planned host/runtime | Real verified current session/grants and API adapter, broader policy authoring/output joins, transactional checked-command persistence, database-per-tenant fixed store, immutable releases/evolution, native CMP Runtime and durable automation. These require their own acceptance evidence. |
 | Deferred expansions | 1:1/N:M, cascade deletion, broader expression/policy languages, live Email/Zalo/webhooks, messaging/bot, offline authority, production migration and Votable retirement. See the [expansion backlog](docs/work-plan/backlog/support-expansion.md). |
 
 A design frame or compiled package does not establish authentication, tenant isolation, native mobile
@@ -34,6 +34,12 @@ neither live records nor secrets, grants or host bindings.
 `develop` is the refactor integration branch. The previous develop head is preserved at
 [`archive/develop-2026-10-03`](https://github.com/loveoverflowcom/evobase/tree/archive/develop-2026-10-03)
 with SHA `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`. History and legacy run documentation remain available.
+
+## Run the local Builder
+
+Follow the [Leptos Builder run guide](apps/evobase-builder/README.md) to build the browser/WASM
+app and serve it locally. Drafts save to localStorage; this does not publish to the legacy backend
+or authenticate a tenant. The guide documents supported inputs and the browser evidence runner.
 
 ## Run the existing backend
 

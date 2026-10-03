@@ -1,7 +1,10 @@
 # 050 — Establish trusted host authority and checked policy/commands
 
 Design issue: [EvoBase #6](https://github.com/loveoverflowcom/evobase/issues/6). Assets pinned at `6ae452f144e49f8aaa5f8d5fb6b3e681c4c4ef6e`.
-Status: proposed future implementation. Design pack: 04 policies/actions.
+Status: implemented experimental definition-owned owner/role policies and SubmitOrder checked
+intents with FixtureHost/simulated browser facts. [Batch evidence](batch-evidence.md) records exact
+checks. Verified session/API, durable receipts and transactional persistence remain open.
+Design pack: 04 policies/actions.
 Skills: engineering → authority, boundary-hardening, core; Web for policy/command projection.
 
 ## Scope / dependencies
@@ -10,6 +13,15 @@ Skills: engineering → authority, boundary-hardening, core; Web for policy/comm
 verified EvoBase session/actor adapter; no client actor/tenant headers as authority. Support a small
 typed owner/role policy and SubmitOrder command. No claim of arbitrary SQL/RLS policy or complete auth
 product from a demo token. Provider/OAuth/persistent access changes require applicable approval.
+
+## Delivered boundary
+
+`RawAppSpec.policies` and `.submit_rules` own portable abstract rules, never host grants.
+`SessionVerifier` and opaque checked context/projection/write types expose the trusted host seam;
+all current exercised identities are fixture/simulation supplied. Ref fields are not readable
+policy outputs, and complete restricted relation scans deny. SubmitOrder returns checked write/
+audit/receipt intent; the host must atomically persist expected revision and all related facts.
+The verified transport/provider/API adapter is the next gate before PR060 storage.
 
 ## Acceptance / required tests
 
@@ -22,7 +34,11 @@ product from a demo token. Provider/OAuth/persistent access changes require appl
 - Current authorization before receipt replay; exact key+intent replay and changed-intent conflict.
 - Structured policy sentence/diagnostic/source rule in Builder and honest unsupported subset.
 
-## Future execution prompt
+## Original prompt and remaining acceptance
+
+The prompt below preserves the original target and gates. The current user-authorized batch
+delivered the experimental subset named above; it does not satisfy every original criterion.
+Follow up on the remaining gate rather than treating the complete prompt as implemented.
 
 > Select PR050 after core gates and resolve host session/native identity and policy subset first.
 > Trace existing verified VOT context/current-membership-before-replay invariants without importing

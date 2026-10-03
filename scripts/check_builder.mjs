@@ -36,7 +36,7 @@ const source = {
   status: execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).trim(),
   files: {},
 };
-for (const file of ['apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/src/relations.rs', 'apps/evobase-builder/src/policy.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
+for (const file of ['scripts/check_builder.mjs', 'apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/src/relations.rs', 'apps/evobase-builder/src/policy.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
   try {
     source.files[file] = digest(await readFile(path.join(root, file)));
   } catch (error) {
@@ -109,6 +109,12 @@ async function captureScenario(page, name, state) {
 async function relationLine(page, id, expected) {
   const cells = await byId(page, 'relation-lines').locator(`tr[data-record-id="${id}"]`).locator('th,td').allTextContents();
   assert.deepEqual(cells, [id, ...expected]);
+}
+async function addOrderRule(page) {
+  await english(page);
+  await select(page, 'tbl_orders');
+  await byId(page, 'policy-add-source').click();
+  await textIncludes(page, 'policy-source', 'rule_order_owner');
 }
 
 async function test(name, run) {
@@ -612,6 +618,153 @@ await test('relation laboratory projects live/captured totals, restricts delete,
   assert.equal(await rawStorage(page), null, 'the relation laboratory does not claim to persist the independent Builder draft');
 });
 
+await test('policy source is canonical, survives save/reload, cancels correctly, and blocks source edits during pause/pending save', async page => {
+  await english(page);
+  await select(page, 'tbl_orders');
+  await textIncludes(page, 'policy-source', 'No rule for this table');
+  await save(page);
+  await byId(page, 'policy-add-source').click();
+  await textIncludes(page, 'policy-source', 'rule_order_owner · v1');
+  await textIncludes(page, 'draft-status', 'Changes are not yet saved');
+  await save(page);
+  const addedBytes = await rawStorage(page);
+  let receipt = await envelope(page);
+  let definition = JSON.parse(receipt.definition_json);
+  assert.equal(receipt.revision, '1');
+  assert.equal(definition.policies.length, 1);
+  assert.equal(definition.policies[0].rule_id, 'rule_order_owner');
+  assert.equal(definition.policies[0].owner_field, 'fld_order_owner');
+  assert.deepEqual(definition.policies[0].submit_roles, ['role_operator']);
+  assert.equal(definition.submit_rules[0].policy_rule_id, 'rule_order_owner');
+  assert.equal(definition.submit_rules[0].quantity_field, 'fld_line_quantity');
+  await byId(page, 'policy-allow-operator').uncheck();
+  await textIncludes(page, 'policy-source', 'v2');
+  await textIncludes(page, 'draft-status', 'Changes are not yet saved');
+  await byId(page, 'cancel').click();
+  await textIncludes(page, 'policy-source', 'v1');
+  assert.equal(await byId(page, 'policy-allow-operator').isChecked(), true);
+  assert.equal(await rawStorage(page), addedBytes);
+  await byId(page, 'policy-allow-operator').uncheck();
+  await save(page);
+  receipt = await envelope(page);
+  assert.equal(receipt.revision, '2');
+  assert.deepEqual(JSON.parse(receipt.definition_json).policies[0].submit_roles, []);
+  await page.reload({ waitUntil: 'networkidle' });
+  await english(page);
+  await select(page, 'tbl_orders');
+  await textIncludes(page, 'policy-source', 'v2');
+  assert.equal(await byId(page, 'policy-allow-operator').isChecked(), false);
+  const persisted = await rawStorage(page);
+  await page.locator('details').filter({ has: byId(page, 'session-toggle') }).locator('summary').click();
+  await byId(page, 'session-toggle').click();
+  for (const id of ['policy-add-source', 'policy-allow-auditor', 'policy-allow-operator']) assert.equal(await byId(page, id).isDisabled(), true);
+  assert.equal(await rawStorage(page), persisted);
+  await byId(page, 'session-toggle').click();
+  await byId(page, 'policy-allow-auditor').uncheck();
+  await textIncludes(page, 'policy-source', 'v3');
+  await page.evaluate(() => {
+    window.__qaLockEntered = false;
+    window.__qaLockRelease = null;
+    window.__qaLockPromise = navigator.locks.request('evobase-builder-local-v1', async () => {
+      window.__qaLockEntered = true;
+      await new Promise(resolve => { window.__qaLockRelease = resolve; });
+    });
+  });
+  await page.waitForFunction(() => window.__qaLockEntered);
+  try {
+    await byId(page, 'save').click();
+    await textIncludes(page, 'draft-status', 'Saving local draft');
+    for (const id of ['policy-add-source', 'policy-allow-auditor', 'policy-allow-operator']) assert.equal(await byId(page, id).isDisabled(), true);
+    assert.equal(await rawStorage(page), persisted, 'a queued save has no premature storage receipt');
+  } finally {
+    await page.evaluate(() => window.__qaLockRelease());
+  }
+  await page.waitForFunction(() => document.querySelector('[data-testid="draft-status"]')?.getAttribute('data-state') === 'saved' && !document.querySelector('[data-testid="save"]')?.disabled);
+  definition = JSON.parse((await envelope(page)).definition_json);
+  assert.deepEqual(definition.policies[0].read_roles, []);
+  assert.deepEqual(definition.policies[0].submit_roles, []);
+});
+
+await test('policy Read and Submit grants are independent and a non-owner needs the allowed current role', async page => {
+  await addOrderRule(page);
+  await textIncludes(page, 'policy-visible', 'Readable records: 1 [rec_order_1]');
+  await byId(page, 'policy-grant-Read').uncheck();
+  for (const grant of ['Design', 'Publish', 'Manage', 'Write']) await byId(page, `policy-grant-${grant}`).check();
+  await textIncludes(page, 'policy-visible', 'current business grant is missing');
+  await byId(page, 'policy-grant-Read').check();
+  await textIncludes(page, 'policy-visible', 'Readable records: 1');
+  await byId(page, 'policy-grant-Submit').uncheck();
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'current business grant is missing');
+  await byId(page, 'policy-grant-Submit').check();
+  await byId(page, 'policy-actor').selectOption('actor_bob');
+  await byId(page, 'policy-role').selectOption('role_operator');
+  await byId(page, 'policy-allow-operator').uncheck();
+  await textIncludes(page, 'policy-visible', 'Readable records: 0 []');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'owner/role rule does not permit');
+  await byId(page, 'policy-role').selectOption('role_auditor');
+  await textIncludes(page, 'policy-visible', 'Readable records: 1 [rec_order_1]');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'owner/role rule does not permit');
+  await byId(page, 'policy-role').selectOption('role_operator');
+  await byId(page, 'policy-allow-operator').check();
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'Simulated 2 checked writes; state submitted.');
+  await textIncludes(page, 'policy-visible', 'Readable records: 0 []');
+  await valueIs(page, 'cell-rec_order_1-fld_order_state', 'draft');
+  await captureScenario(page, 'policy-normal-en-light', 'Local simulation: Bob has an allowed Operator Submit role; the checked command applies, while Read remains separately denied and the independent Builder draft stays draft.');
+  assert.equal(await rawStorage(page), null, 'simulation does not claim a durable command receipt');
+});
+
+await test('policy validates retained input and normalized retry intent, then rechecks revoked grants/membership before replay', async page => {
+  await addOrderRule(page);
+  const tooLong = 'x'.repeat(1001);
+  await byId(page, 'policy-notes').fill(tooLong);
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'Invalid input. Check the notes');
+  await valueIs(page, 'policy-notes', tooLong);
+  await byId(page, 'policy-notes').fill('  urgent  ');
+  await byId(page, 'policy-quantity').fill('0');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'Quantity must be an integer from 1 to 10000');
+  await valueIs(page, 'policy-quantity', '0');
+  await byId(page, 'locale').click();
+  await textIncludes(page, 'policy-decision', 'Số lượng phải là số nguyên từ 1 đến 10000');
+  await captureScenario(page, 'policy-invalid-vi-light', 'Local simulation: invalid quantity 0 remains in the input with Vietnamese feedback; no command writes or durable receipts are asserted.');
+  await byId(page, 'locale').click();
+  await byId(page, 'policy-quantity').fill('1.5');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'Quantity must be an integer from 1 to 10000');
+  await valueIs(page, 'policy-quantity', '1.5');
+  await byId(page, 'policy-quantity').fill('3');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'Simulated 2 checked writes; state submitted.');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'replayed the simulated receipt');
+  await byId(page, 'policy-quantity').fill('4');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'key belongs to a different intent');
+  await valueIs(page, 'policy-quantity', '4');
+  await byId(page, 'policy-quantity').fill('3');
+  await byId(page, 'policy-notes').fill('urgent');
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'replayed the simulated receipt');
+  await byId(page, 'policy-active').uncheck();
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'current membership is revoked');
+  await textIncludes(page, 'policy-visible', 'current membership is revoked');
+  await byId(page, 'policy-active').check();
+  await byId(page, 'policy-grant-Submit').uncheck();
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'current business grant is missing');
+  await byId(page, 'policy-grant-Submit').check();
+  await byId(page, 'policy-submit').click();
+  await textIncludes(page, 'policy-decision', 'replayed the simulated receipt');
+  await valueIs(page, 'cell-rec_order_1-fld_order_state', 'draft');
+  assert.equal(await rawStorage(page), null);
+});
+
 await test('VI/EN × light/dark desktop and compact handoff have no axe violations or page overflow', async page => {
   const matrixFailures = [];
   for (const scenario of [
@@ -647,15 +800,25 @@ await test('VI/EN × light/dark desktop and compact handoff have no axe violatio
 });
 
 await browser.close();
+const passedScenario = pattern => results.some(result => result.passed && pattern.test(result.name));
+const axeScans = captures.filter(capture => Number.isInteger(capture.axeViolations)).length;
 const report = {
-  source, baseURL, browser: 'Chromium headless / Playwright',
+  source, baseURL, browser: `Chromium ${browser.version()} headless / Playwright`,
   executedAt: new Date().toISOString(),
   artifacts: evidenceDir,
   scope: 'Mounted local-only Leptos Builder with synthetic Commerce fixture and actual localStorage receipts.',
-  boundaries: ['DOM-tested', 'keyboard actions', 'synthetic DOM composition events', 'local browser storage read-back', 'automated axe scan', 'browser-runtime captures'],
+  boundaries: [
+    ...(results.some(result => result.passed) ? ['DOM-tested'] : []),
+    ...(passedScenario(/typed diagnostics|composition|history|capture guards|actual grid capture|signed i64|reserved text|stable IDs|Cancel/) ? ['keyboard actions'] : []),
+    ...(passedScenario(/DOM composition/) ? ['synthetic DOM composition events'] : []),
+    ...(passedScenario(/save|reload|import|storage|Cancel|capture|policy|session|receipt|composition|fixture|relation/) ? ['local browser storage read-back'] : []),
+    ...(axeScans ? ['automated axe scan'] : []),
+    ...(captures.length ? ['browser-runtime captures'] : []),
+  ],
   notCovered: ['Real operating-system IME', 'screen reader', 'Firefox/Safari', 'CMP/native runtime', 'server persistence or authentication', 'automated visual comparator; captures require opening before claiming inspected pixels'],
   resources: Object.fromEntries(resourceDigests),
   resourceErrors,
+  axeScans,
   scenarioFilter: process.env.SCENARIO_FILTER ?? null,
   skipped,
   results, captures,

@@ -36,7 +36,7 @@ const source = {
   status: execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).trim(),
   files: {},
 };
-for (const file of ['scripts/check_builder.mjs', 'apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/src/relations.rs', 'apps/evobase-builder/src/policy.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
+for (const file of ['scripts/check_builder.mjs', 'apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/src/constraints.rs', 'apps/evobase-builder/src/relations.rs', 'apps/evobase-builder/src/policy.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
   try {
     source.files[file] = digest(await readFile(path.join(root, file)));
   } catch (error) {
@@ -306,6 +306,7 @@ await test('canonical text constraint authoring validates existing rows and gove
   assert.equal(await byId(page, 'constraint-source').locator('li').count(), 0);
   await byId(page, 'cancel').click();
   await textIncludes(page, 'constraint-source', 'Character length: 1–4');
+  await page.locator('details').filter({ has: byId(page, 'session-toggle') }).locator('summary').click();
   await byId(page, 'session-toggle').click();
   assert.equal(await byId(page, 'constraint-add').isDisabled(), true);
   assert.equal(await byId(page, 'constraint-remove-constraint_local_1').isDisabled(), true);

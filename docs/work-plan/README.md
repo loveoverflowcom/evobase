@@ -1,14 +1,14 @@
 # EvoBase reboot: skills, designs and sequential PR prompts
 
-**Current scope: ten additional implementation commits on `develop`, then push that branch.
-Implement one tenant first; multi-tenant work is deferred.** Use the engineering/UI/review skills,
+**Completed scope: ten additional implementation commits on `develop`, published to that branch.
+One tenant is implemented first; multi-tenant work is deferred.** Use the engineering/UI/review skills,
 the [single-tenant libSQL ADR](decisions/020-single-tenant-libsql.md) and
-[new batch evidence](next-batch-evidence.md). The current recommended sequence is:
+[new batch evidence](next-batch-evidence.md). The implemented sequence is:
 
 1. [160 Profile and trust boundary](160-single-tenant-profile.md)
 2. [170 Declarative constraints](170-declarative-constraints.md)
-3. [180 Generic transitions and events](180-generic-transitions.md)
-4. [190 libSQL fixed store](190-libsql-fixed-store.md)
+3. [180 libSQL fixed store](180-libsql-fixed-store.md)
+4. [190 Generic transitions and events](190-generic-transitions.md)
 5. [200 Atomic command commit](200-atomic-command-commit.md)
 6. [210 Versioned wire contract](210-versioned-appspec-protocol.md)
 7. [220 Single-tenant HTTP host](220-single-tenant-http-host.md)
@@ -17,8 +17,10 @@ the [single-tenant libSQL ADR](decisions/020-single-tenant-libsql.md) and
 10. [250 Integration and evidence](250-batch-integration.md)
 
 Numeric prefixes represent the recommended sequence, may be renumbered, and are not permanent IDs.
-GitHub remains the issue tracker; these files define this batch's review boundaries. Full command
-authoring, release evolution, providers and native CMP retain their existing gates.
+Basic storage was delivered before generic commands because its snapshot contract was independent.
+GitHub remains the issue tracker; these files define this batch's review boundaries. The next
+recommended task is [260 command authoring](260-command-authoring.md). Release evolution,
+providers, multi-tenant support and native CMP retain their separate gates.
 
 The earlier five sequential refactor commits are complete. Their historical planning
 handoff is now an input to that implementation batch; its prior one-PR selection/stop instructions
@@ -33,8 +35,7 @@ base, inspect manifests/tools and execute this bounded batch. Preserve unfinishe
 provider gates. A future prompt outside the selected batch is not standing permission to build
 the entire platform.
 
-The batch intent is ordered by its checked-contract dependencies, with roughly five reviewable
-commits rather than one platform rewrite:
+The earlier completed batch followed these five checked-contract dependencies:
 
 | Commit scope | Owning issue / prompt | Experimental delivery / remaining gate |
 |---|---|---|
@@ -44,7 +45,7 @@ commits rather than one platform rewrite:
 | 4. Add N:1/restrict, captures and bounded formula core plus browser inspector | #5 / [040](040-relations-and-formulas.md) | N:1/restrict/capture and bounded query APIs implemented; portable formula authoring/export and advanced relations deferred. |
 | 5. Add a bounded policy/command core and simulated browser inspector; verify integrated batch/CI | #6 / [050](050-authority-policies-commands.md) | Definition-owned owner/role and SubmitOrder core implemented with simulated host facts; verified session/API and transactional receipts deferred. |
 
-These rows describe the current batch, not a second issue-status database. GitHub owns final issue
+These historical rows describe delivered boundaries, not a second issue-status database. GitHub owns final issue
 status. Close an issue only when all its scoped acceptance is met; otherwise mark the delivered
 subset and list remaining gates. In particular, browser tests cannot complete CMP, provider or
 fixed-store acceptance.

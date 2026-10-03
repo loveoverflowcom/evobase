@@ -1,6 +1,6 @@
 # 240 — Run generated lists and declared actions over HTTP
 
-Status: active in the ten-commit single-tenant batch. Owner: #9/#19.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #9/#19.
 
 ## Why
 

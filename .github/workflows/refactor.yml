@@ -1,4 +1,4 @@
-name: AppSpec and local Builder
+name: AppSpec, libSQL host and Web clients
 on:
   push:
     branches: [develop]
@@ -21,15 +21,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: cargo fmt -p evobase-appspec -p evobase-builder --check
+      - run: cargo fmt -p evobase-appspec -p evobase-store -p evobase-protocol -p evobase-host -p evobase-builder --check
       - run: cargo test --workspace --locked
       - run: cargo clippy -p evobase-appspec -p evobase-builder --all-targets --locked -- -D warnings
+      - run: cargo clippy -p evobase-store -p evobase-protocol -p evobase-host --all-targets --no-deps --locked -- -D warnings
       - run: cargo clippy -p evobase-builder --target wasm32-unknown-unknown --all-targets --locked -- -D warnings
       - run: cargo test -p evobase-appspec --locked --target wasm32-wasip1
         env:
           CARGO_TARGET_WASM32_WASIP1_RUNNER: node ${{ github.workspace }}/scripts/run-wasi.mjs
       - run: python3 apps/evobase-builder/generate_tokens.py --check
       - run: cargo check -p evobase-builder --locked --target wasm32-unknown-unknown
+      - run: cargo check -p evobase-protocol --no-default-features --locked --target wasm32-unknown-unknown
 
   local-browser:
     runs-on: ubuntu-latest
@@ -45,6 +47,7 @@ jobs:
           node-version: '24'
       - run: cargo install wasm-bindgen-cli --version 0.2.114 --locked
       - run: bash scripts/build-builder.sh
+      - run: cargo build -p evobase-host --locked
       - run: npm install --prefix /tmp/evobase-browser playwright@1.63.0 @axe-core/playwright@4.13.0
       - run: /tmp/evobase-browser/node_modules/.bin/playwright install --with-deps chromium
       - run: python3 -m http.server 4173 --bind 127.0.0.1 --directory apps/evobase-builder/dist > /tmp/evobase-builder-server.log 2>&1 &
@@ -54,9 +57,21 @@ jobs:
           AXE_MODULE_PATH: /tmp/evobase-browser/node_modules/@axe-core/playwright/dist/index.mjs
           BUILDER_URL: http://127.0.0.1:4173
           EVIDENCE_DIR: /tmp/evobase-browser-evidence
+      - run: bash scripts/check-runtime.sh
+        env:
+          PLAYWRIGHT_MODULE_PATH: /tmp/evobase-browser/node_modules/playwright/index.mjs
+          AXE_MODULE_PATH: /tmp/evobase-browser/node_modules/@axe-core/playwright/dist/index.mjs
+          RUNTIME_URL: http://127.0.0.1:4173/?runtime=1
+          EVIDENCE_DIR: /tmp/evobase-runtime-browser-evidence
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: local-builder-browser-evidence
           path: /tmp/evobase-browser-evidence
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-tenant-runtime-browser-evidence
+          path: /tmp/evobase-runtime-browser-evidence
           if-no-files-found: ignore

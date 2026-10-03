@@ -1,6 +1,6 @@
 # 250 — Harden and verify the integrated profile
 
-Status: active in the ten-commit single-tenant batch. Owner: #7/#18/#19.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #7/#18/#19.
 
 ## Why
 

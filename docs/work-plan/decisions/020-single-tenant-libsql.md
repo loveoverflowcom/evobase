@@ -1,6 +1,6 @@
 # 020 — Single-tenant libSQL execution profile
 
-Status: selected for the next ten-commit batch; execution evidence is recorded separately.
+Status: implemented for the bounded ten-commit batch; [execution evidence](../next-batch-evidence.md) records remaining gates.
 Date: 2026-10-03. Base: `1ae1457a12a9894bfd35a550028e198ffaaacf38`.
 Authority: user request for ten further commits and push to `develop`; issues
 [#7](https://github.com/loveoverflowcom/evobase/issues/7),

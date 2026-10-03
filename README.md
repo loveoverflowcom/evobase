@@ -14,8 +14,8 @@ forms and actions. SQL and expert Rust syntax are adapters/frontends, not prereq
 | State | Scope and evidence |
 |---|---|
 | Existing baseline | Rust/PostgreSQL table gateway, JWT authentication, introspection and RAM SSE/relay; Flutter client/workbench. Source exists at `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`; this is not an AppSpec host or a durable worker. |
-| Implemented experimental slice | `evobase-appspec` owns bounded version 1 definitions/facts, exact values, N:1/restrict/captures, bounded pure query formulas and definition-owned owner/role/SubmitOrder rules. The Leptos Builder mounts typed local drafts/import plus relation/policy previews. Browser facts are local/simulated; formulas are query APIs, with portable formula authoring/export still deferred. See [batch evidence](docs/work-plan/batch-evidence.md) for executed scope. |
-| Planned host/runtime | Real verified current session/grants and API adapter, broader policy authoring/output joins, transactional checked-command persistence, database-per-tenant fixed store, immutable releases/evolution, native CMP Runtime and durable automation. These require their own acceptance evidence. |
+| Implemented experimental slice | `evobase-appspec` owns compatible v1/v2 definitions, exact values, N:1/restrict/captures, bounded formulas, declarative field constraints and finite commands/events. The Leptos Builder authors local drafts and constraints. A separate generated Runtime consumes the verified single-tenant HTTP host, immutable bootstrap release and libSQL transactions with atomic audit/events/receipts and current-authority replay checks. See [new batch evidence](docs/work-plan/next-batch-evidence.md) and [earlier evidence](docs/work-plan/batch-evidence.md). |
+| Remaining host/runtime | Full command authoring, publish/evolution/backfill, broader policy/query support, multi-tenant provisioning/routing/isolation, native CMP Runtime and durable automation. Remote Turso support is implemented but needs actual service conformance evidence. |
 | Deferred expansions | 1:1/N:M, cascade deletion, broader expression/policy languages, live Email/Zalo/webhooks, messaging/bot, offline authority, production migration and Votable retirement. See the [expansion backlog](docs/work-plan/backlog/support-expansion.md). |
 
 A design frame or compiled package does not establish authentication, tenant isolation, native mobile
@@ -41,9 +41,18 @@ Follow the [Leptos Builder run guide](apps/evobase-builder/README.md) to build t
 app and serve it locally. Drafts save to localStorage; this does not publish to the legacy backend
 or authenticate a tenant. The guide documents supported inputs and the browser evidence runner.
 
+## Run the single-tenant libSQL host and Runtime
+
+The [host quickstart](apps/evobase-host/README.md) documents local files or a remote Turso/libSQL
+primary, immutable fixture bootstrap and operator-issued bearer access. Configure one tenant and
+one application per host. The [generated Runtime guide](apps/evobase-builder/README.md#generated-http-runtime)
+opens the same browser build at `?runtime=1` and reads current permitted data/actions from that host.
+The support and library examples use the same generic core, storage and UI. Multi-tenant routing,
+remote-service acceptance and production identity remain future gates.
+
 ## Run the existing backend
 
 The original backend architecture, environment setup, SQL migration and API examples are preserved
 in the [legacy backend run guide](docs/LEGACY_BACKEND.md). The [docs map](docs/README.md) points to
-its detailed architecture and Flutter lessons. Those commands run the existing backend, not the
-planned tenant host. No production migration or legacy removal is part of this refactor batch.
+its detailed architecture and Flutter lessons. Those commands run the existing backend. No
+production migration or legacy removal is part of this refactor batch.

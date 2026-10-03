@@ -1,6 +1,6 @@
 # 210 — Define bounded versioned AppSpec transport
 
-Status: active in the ten-commit single-tenant batch. Owner: #19.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #19.
 
 ## Why
 

@@ -12,8 +12,8 @@ of its exact canonical codec bytes; bootstrap cannot repin or overwrite an exist
 
 Facts use the core's whole-app snapshot envelope: at most 4,096 records and 1 MiB canonical JSON.
 Definitions and persisted command payloads are independently bounded to 1 MiB. Read and write
-semantics revalidate canonical facts against the pinned checked definition. Ref checks and
-supported uniqueness/constraints use complete final-state validation; there is no secondary
+semantics revalidate canonical facts against the pinned checked definition. Record identity,
+reference and declared field constraints use complete final-state validation; there is no secondary
 physical relation index or unique-claim table in this bounded profile. Large-app paging, query
 indexing, schema evolution and performance measurements need separate acceptance.
 

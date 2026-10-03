@@ -1,6 +1,6 @@
 # 160 — Select the single-tenant storage and authority profile
 
-Status: active in the ten-commit single-tenant batch. Owner: #7/#6.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #7/#6.
 
 ## Why
 

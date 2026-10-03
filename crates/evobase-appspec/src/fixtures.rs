@@ -207,8 +207,7 @@ pub fn support_workflow_spec() -> RawAppSpec {
         "requests",
         "request",
         "Support requests",
-        "open",
-        "resolved",
+        ("open", "resolved"),
         "cmd_resolve_request",
         2,
     )
@@ -221,8 +220,7 @@ pub fn library_workflow_spec() -> RawAppSpec {
         "loans",
         "loan",
         "Library loans",
-        "borrowed",
-        "returned",
+        ("borrowed", "returned"),
         "cmd_return_loan",
         14,
     )
@@ -233,11 +231,11 @@ fn workflow_spec(
     table_suffix: &str,
     prefix: &str,
     name: &str,
-    from: &str,
-    to: &str,
+    states: (&str, &str),
     command_id: &str,
     count: i64,
 ) -> RawAppSpec {
+    let (from, to) = states;
     use crate::commands::{
         CommandGuard, CommandInput, RawCommand, RawEventIntent, RawStateMachine,
     };

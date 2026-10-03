@@ -143,7 +143,9 @@ async fn transport_budget(
     {
         return ApiFailure::validation().into_response();
     }
-    if headers.get_all(header::ORIGIN).iter().count() > 1 || headers.get_all(header::CONTENT_TYPE).iter().count() > 1 {
+    if headers.get_all(header::ORIGIN).iter().count() > 1
+        || headers.get_all(header::CONTENT_TYPE).iter().count() > 1
+    {
         return ApiFailure::validation().into_response();
     }
     let origin = headers.get(header::ORIGIN).cloned();

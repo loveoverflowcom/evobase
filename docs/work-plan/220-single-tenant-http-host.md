@@ -1,6 +1,6 @@
 # 220 — Serve authorized generic AppSpec routes
 
-Status: active in the ten-commit single-tenant batch. Owner: #6/#18.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #6/#18.
 
 ## Why
 

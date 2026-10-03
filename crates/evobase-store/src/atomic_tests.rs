@@ -138,6 +138,21 @@ async fn denied_invalid_conflicting_and_raced_authority_never_leave_partial_stat
         matches!(store.execute(&host, "fixture-verified", &scope, &RequestChannel::NativeBearer, 10, 1, &invalid).await, Err(StoreError::Command(CommandError::ImmutableField(field))) if field.as_str() == "fld_request_owner")
     );
     assert_eq!(counts(&store).await, (0, 0, 0));
+    let mut wrong_type = request.clone();
+    wrong_type
+        .inputs
+        .insert(FieldId::new("fld_request_note").unwrap(), Value::Integer(7));
+    assert!(
+        matches!(store.execute(&host, "fixture-verified", &scope, &RequestChannel::NativeBearer, 10, 1, &wrong_type).await, Err(StoreError::Command(CommandError::InvalidInput { field: Some(field), reason: "wrong type or text limit" })) if field.as_str() == "fld_request_note")
+    );
+    let mut constraint_violation = request.clone();
+    constraint_violation.inputs.insert(
+        FieldId::new("fld_request_note").unwrap(),
+        Value::Text(String::new()),
+    );
+    assert!(
+        matches!(store.execute(&host, "fixture-verified", &scope, &RequestChannel::NativeBearer, 10, 1, &constraint_violation).await, Err(StoreError::Command(CommandError::InvalidInput { field: Some(field), reason: "input constraint failed" })) if field.as_str() == "fld_request_note")
+    );
     let mut raced = FixtureHost::new(&scope, store.binding_id());
     raced.race_on_read = 3;
     let raced_host = HostAuthority::new(raced);

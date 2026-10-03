@@ -4,6 +4,24 @@ These are deliberately outside the first bounded PRs. They remain obligations, n
 abandoned features. Promote each when its immediate consumer and prerequisite evidence are real;
 split into a reviewed issue/PR with design state, support ADR and exact regression gate.
 
+## After the single-tenant libSQL batch
+
+The ten-commit batch delivers the bounded profile in [ADR 020](../decisions/020-single-tenant-libsql.md),
+not the full #7/#8/#9/#16/#17/#18/#19 epics. The next recommended consumer is
+[260 command authoring](../260-command-authoring.md), before a separate publish/evolution slice.
+Keep these obligations outside the completed queue:
+
+- Real Turso primary conformance: credentials, remote transactions/CAS/retry/disconnect and operational
+  restore evidence. Local libSQL tests establish local behavior only.
+- Multi-tenant database provisioning, verified routing, separate credentials and cross-tenant negative
+  tests. The user explicitly deferred this; one configured tenant is not isolation evidence.
+- Publish/repin/evolution/backfill with historical release recovery and concurrent-authority checks;
+  bootstrap immutability is the delivered subset of #8.
+- General event authoring/schema reuse and durable outbox worker delivery; stored event intents do
+  not establish dispatch or a provider receipt.
+- Runtime pagination/search and receipt recovery across page reload. The current client bounds its
+  first page, reports truncation and retains unresolved exact requests in window memory only.
+
 ## Advanced relation/constraint semantics
 
 1:1 uniqueness/null semantics, N:M link/edge uniqueness, other delete policies and relations with

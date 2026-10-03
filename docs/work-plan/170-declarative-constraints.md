@@ -1,6 +1,6 @@
 # 170 — Enforce portable field constraints
 
-Status: active in the ten-commit single-tenant batch. Owner: #16.
+Status: completed for the bounded single-tenant profile; broader issue gates remain open. Owner: #16.
 
 ## Why
 

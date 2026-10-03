@@ -4,11 +4,11 @@
 
 Read the nearest owner documentation and pin the source revision before acting. A request for
 designs, skills, review or PR prompts authorizes that deliverable, not implementation of the
-future prompts. The current user request authorizes ten additional implementation commits
-on `develop` and a push, with one tenant first and multi-tenant work deferred. The earlier
-five-commit batch is complete. Execute this bounded batch without repeating
-the old one-PR selection gate; report incomplete acceptance explicitly. Broader queue items remain
-future work.
+future prompts. The user-authorized ten additional commits
+on `develop` deliver one tenant first, with multi-tenant work deferred. That bounded batch and the
+earlier five-commit batch are complete; see [current evidence](docs/work-plan/next-batch-evidence.md).
+The next recommended queue item is command authoring, not standing permission to implement the
+entire queue. Report incomplete acceptance explicitly when selecting future work.
 
 The product authority is [EvoBase #1](https://github.com/loveoverflowcom/evobase/issues/1).
 The selected future stack is Rust backend/core, Leptos web and Compose Multiplatform mobile.

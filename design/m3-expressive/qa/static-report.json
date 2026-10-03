@@ -1,0 +1,1126 @@
+{
+  "evidence": "static-source + static-svg-raster only",
+  "screen_count": 27,
+  "frame_count": 60,
+  "passed": 250,
+  "failed": [],
+  "contrasts": [
+    {
+      "theme": "light",
+      "foreground": "onPrimary",
+      "background": "primary",
+      "ratio": 6.79
+    },
+    {
+      "theme": "light",
+      "foreground": "onPrimaryContainer",
+      "background": "primaryContainer",
+      "ratio": 10.9
+    },
+    {
+      "theme": "light",
+      "foreground": "onSecondaryContainer",
+      "background": "secondaryContainer",
+      "ratio": 11.07
+    },
+    {
+      "theme": "light",
+      "foreground": "onTertiaryContainer",
+      "background": "tertiaryContainer",
+      "ratio": 9.78
+    },
+    {
+      "theme": "light",
+      "foreground": "onErrorContainer",
+      "background": "errorContainer",
+      "ratio": 9.55
+    },
+    {
+      "theme": "light",
+      "foreground": "onSurface",
+      "background": "surface",
+      "ratio": 14.79
+    },
+    {
+      "theme": "light",
+      "foreground": "onSurfaceVariant",
+      "background": "surfaceContainerHighest",
+      "ratio": 4.73
+    },
+    {
+      "theme": "light",
+      "foreground": "onWarningContainer",
+      "background": "warningContainer",
+      "ratio": 8.91
+    },
+    {
+      "theme": "light",
+      "foreground": "onSuccessContainer",
+      "background": "successContainer",
+      "ratio": 8.8
+    },
+    {
+      "theme": "dark",
+      "foreground": "onPrimary",
+      "background": "primary",
+      "ratio": 7.9
+    },
+    {
+      "theme": "dark",
+      "foreground": "onPrimaryContainer",
+      "background": "primaryContainer",
+      "ratio": 7.09
+    },
+    {
+      "theme": "dark",
+      "foreground": "onSecondaryContainer",
+      "background": "secondaryContainer",
+      "ratio": 7.17
+    },
+    {
+      "theme": "dark",
+      "foreground": "onTertiaryContainer",
+      "background": "tertiaryContainer",
+      "ratio": 7.52
+    },
+    {
+      "theme": "dark",
+      "foreground": "onErrorContainer",
+      "background": "errorContainer",
+      "ratio": 7.05
+    },
+    {
+      "theme": "dark",
+      "foreground": "onSurface",
+      "background": "surface",
+      "ratio": 14.46
+    },
+    {
+      "theme": "dark",
+      "foreground": "onSurfaceVariant",
+      "background": "surfaceContainerHighest",
+      "ratio": 5.7
+    },
+    {
+      "theme": "dark",
+      "foreground": "onWarningContainer",
+      "background": "warningContainer",
+      "ratio": 9.06
+    },
+    {
+      "theme": "dark",
+      "foreground": "onSuccessContainer",
+      "background": "successContainer",
+      "ratio": 8.1
+    }
+  ],
+  "checks": [
+    {
+      "check": "27 unique screens",
+      "pass": true
+    },
+    {
+      "check": "12 canonical packs",
+      "pass": true
+    },
+    {
+      "check": "paired light/dark role names",
+      "pass": true
+    },
+    {
+      "check": "light:onPrimary/primary text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onPrimaryContainer/primaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onSecondaryContainer/secondaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onTertiaryContainer/tertiaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onErrorContainer/errorContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onSurface/surface text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onSurfaceVariant/surfaceContainerHighest text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onWarningContainer/warningContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "light:onSuccessContainer/successContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onPrimary/primary text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onPrimaryContainer/primaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onSecondaryContainer/secondaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onTertiaryContainer/tertiaryContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onErrorContainer/errorContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onSurface/surface text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onSurfaceVariant/surfaceContainerHighest text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onWarningContainer/warningContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "dark:onSuccessContainer/successContainer text contrast",
+      "pass": true
+    },
+    {
+      "check": "workspace:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "workspace:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "workspace:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "workspace:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "workspace:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "workspace:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "new-app:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "new-app:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "new-app:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "new-app:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "new-app:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "new-app:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "builder-data:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "builder-data:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "builder-data:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "builder-data:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "builder-data:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "builder-data:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "field-inspector:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "import-resolve:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "relations:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "relations:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "relations:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "relations:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "relations:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "relations:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "formula:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "formula:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "formula:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "formula:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "formula:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "formula:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "policy:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "policy:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "policy:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "policy:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "policy:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "policy:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "command:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "command:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "command:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "command:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "command:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "command:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "view-builder:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "view-builder:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "view-builder:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "view-builder:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "view-builder:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "view-builder:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "preview:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "preview:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "preview:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "preview:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "preview:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "preview:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "publish:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "publish:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "publish:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "publish:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "publish:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "publish:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "migration:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "migration:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "migration:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "migration:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "migration:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "migration:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-home:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-detail:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "runtime-form:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "approval:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "approval:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "approval:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "approval:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "approval:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "approval:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "functions:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "functions:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "functions:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "functions:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "functions:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "functions:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "run-detail:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "run-detail:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "run-detail:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "run-detail:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "run-detail:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "run-detail:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "tenant-ops:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "connectors:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "connectors:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "connectors:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "connectors:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "connectors:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "connectors:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "inbox:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "inbox:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "inbox:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "inbox:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "inbox:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "inbox:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "bot-scope:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "offline:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "offline:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "offline:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "offline:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "offline:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "offline:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "settings:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "settings:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "settings:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "settings:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "settings:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "settings:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "states:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "states:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "states:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "states:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "states:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "states:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "components:desktop:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "components:desktop:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "components:desktop:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "components:mobile:frame+PNG",
+      "pass": true
+    },
+    {
+      "check": "components:mobile:raster dimensions",
+      "pass": true
+    },
+    {
+      "check": "components:mobile:no negative rects",
+      "pass": true
+    },
+    {
+      "check": "app.mjs:Node syntax",
+      "pass": true
+    },
+    {
+      "check": "data.mjs:Node syntax",
+      "pass": true
+    },
+    {
+      "check": "dialog/status semantic hooks",
+      "pass": true
+    },
+    {
+      "check": "reduced motion + forced colors",
+      "pass": true
+    },
+    {
+      "check": "scoped pack first-screen fallback",
+      "pass": true
+    },
+    {
+      "check": "active surface dock/rail markers",
+      "pass": true
+    },
+    {
+      "check": "01-foundation:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "01-foundation:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "01-foundation:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "01-foundation:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "01-foundation:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "02-data-grid:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "02-data-grid:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "02-data-grid:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "02-data-grid:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "02-data-grid:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "03-structure-formulas:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "03-structure-formulas:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "03-structure-formulas:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "03-structure-formulas:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "03-structure-formulas:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "04-policies-commands:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "04-policies-commands:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "04-policies-commands:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "04-policies-commands:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "04-policies-commands:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "05-hosted-isolation:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "05-hosted-isolation:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "05-hosted-isolation:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "05-hosted-isolation:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "05-hosted-isolation:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "06-release:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "06-release:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "06-release:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "06-release:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "06-release:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "07-runtime:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "07-runtime:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "07-runtime:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "07-runtime:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "07-runtime:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "08-functions:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "08-functions:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "08-functions:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "08-functions:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "08-functions:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "09-connectors:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "09-connectors:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "09-connectors:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "09-connectors:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "09-connectors:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "10-messaging:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "10-messaging:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "10-messaging:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "10-messaging:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "10-messaging:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "11-scoped-bot:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "11-scoped-bot:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "11-scoped-bot:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "11-scoped-bot:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "11-scoped-bot:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "12-portability:bounded ZIP <1.5MB",
+      "pass": true
+    },
+    {
+      "check": "12-portability:ZIP SHA256",
+      "pass": true
+    },
+    {
+      "check": "12-portability:ZIP integrity",
+      "pass": true
+    },
+    {
+      "check": "12-portability:scoped screen data",
+      "pass": true
+    },
+    {
+      "check": "12-portability:Apache font license + attribution",
+      "pass": true
+    },
+    {
+      "check": "no recognized secret patterns in authored text",
+      "pass": true
+    }
+  ],
+  "not_run": [
+    "browser rendering/interaction",
+    "native CMP Android/iOS",
+    "Leptos mounted UI",
+    "Rust/storage/provider tests",
+    "full VI/EN localization"
+  ]
+}

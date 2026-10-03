@@ -1,6 +1,9 @@
 # EvoBase Docs Map
 
-Đây là bản đồ đọc nhanh cho người muốn hiểu dự án theo đúng luồng thực tế của codebase.
+Đây là bản đồ tài liệu backend/Flutter hiện có tại baseline `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`.
+Hướng refactor AppSpec/Rust/Leptos/CMP được mô tả trong [README mới](../README.md),
+[foundation ADR](work-plan/decisions/010-foundation.md) và [work plan](work-plan/README.md).
+Các hướng dẫn bên dưới được giữ để chạy và tra cứu backend cũ; chúng không chứng minh host mới đã triển khai.
 
 ## Nên đọc theo thứ tự nào
 

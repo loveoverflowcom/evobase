@@ -1,5 +1,10 @@
 # Messaging Model
 
+> Status: historical Rust-DSL/generated-runtime proposal. The remaining text records the earlier
+> design, including its proposed targets; it is not the active AppSpec contract. Read the
+> [reconciliation](README.md) and [foundation ADR](../docs/work-plan/decisions/010-foundation.md)
+> for current, planned and deferred scope. Original baseline: `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`.
+
 Messaging in the redesigned EvoBase is domain-event based. It is not a generic
 notification pipe.
 

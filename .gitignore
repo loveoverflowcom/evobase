@@ -2,3 +2,6 @@
 /.env
 /.DS_Store
 /.kiro
+__pycache__/
+*.pyc
+/apps/evobase-builder/dist/

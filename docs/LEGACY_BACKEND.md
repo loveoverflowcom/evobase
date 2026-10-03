@@ -1,0 +1,164 @@
+# Legacy EvoBase backend run guide
+
+Status: preserved source-inspected backend documentation from
+`develop@4cb5873200f4d735b17b75fdd3cb88c2efdbb322`. The commands below target the existing
+SQL gateway and Flutter-era backend, not the AppSpec refactor. See the [current overview](../README.md).
+
+`evobase` is a minimal, modular Rust backend platform inspired by Supabase/PostgREST.
+It keeps application logic thin by pushing authorization and row-level access into PostgreSQL.
+
+## Architecture
+
+- `evobase-core`: shared types, traits, config, and errors
+- `evobase-db`: PostgreSQL adapter and PostgREST-like table access
+- `evobase-auth`: username/password auth with JWT issuance
+- `evobase-messaging`: in-memory SSE notification hub
+- `evobase-gateway`: HTTP routing, middleware, and request parsing
+- `evobase-server`: bootstrap binary
+
+## Features
+
+- Username/password register, login, and refresh
+- Access, refresh, and notification JWTs
+- Authenticated SSE connections at `/events`
+- In-memory fan-out messaging at `/messages/send`
+- Offline in-memory relay queue with automatic replay and 3-day TTL
+- PostgREST-like REST table gateway at `/rest/:table`
+- DB introspection docs at `/docs` and `/docs/:table`
+- Request-scoped PostgreSQL claim forwarding via `set_config`
+
+## Quick Start
+
+1. Copy `.env.example` to `.env` and update the secrets.
+2. Run the migration in [`db/migrations/0001_init.sql`](../db/migrations/0001_init.sql).
+3. Start the server:
+
+```bash
+cargo run -p evobase-server
+```
+
+## Example cURL
+
+Register:
+
+```bash
+curl -X POST http://127.0.0.1:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"super-secret-password"}'
+```
+
+Login:
+
+```bash
+curl -X POST http://127.0.0.1:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"super-secret-password"}'
+```
+
+Refresh:
+
+```bash
+curl -X POST http://127.0.0.1:3000/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token":"<refresh-token>"}'
+```
+
+Open an SSE stream:
+
+```bash
+curl -N "http://127.0.0.1:3000/events?token=<notification-token>"
+```
+
+Or use the notification token via header:
+
+```bash
+curl -N http://127.0.0.1:3000/events \
+  -H "Authorization: Bearer <notification-token>"
+```
+
+Send a message:
+
+```bash
+curl -X POST http://127.0.0.1:3000/messages/send \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to_user_id":"<target-user-id>",
+    "event":"chat.message",
+    "payload":{"body":"hello from evobase"}
+  }'
+```
+
+If the recipient is offline, the message is queued in memory for up to 3 days and replayed on the
+next SSE connection before being removed from the queue.
+The API response now includes `delivered_connections` and `queued_messages` so the client can tell
+whether the event was delivered live or stored for relay.
+
+Read from a table with RLS applied:
+
+```bash
+curl "http://127.0.0.1:3000/rest/public.notes?select=id,body,created_at&order=created_at.desc&limit=10" \
+  -H "Authorization: Bearer <access-token>"
+```
+
+Insert through the REST gateway:
+
+```bash
+curl -X POST http://127.0.0.1:3000/rest/public.notes \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"owner_id":"<user-id>","body":"created via REST gateway"}'
+```
+
+You can also run the scripted version from [`scripts/api-smoke.sh`](../scripts/api-smoke.sh).
+
+Read generated docs for all exposed tables:
+
+```bash
+curl http://127.0.0.1:3000/docs
+```
+
+Read generated docs for a single table:
+
+```bash
+curl http://127.0.0.1:3000/docs/public.notes
+```
+
+## Supported REST Query Syntax
+
+- `select=id,body,created_at`
+- `limit=20`
+- `offset=0`
+- `order=created_at.desc,id.asc`
+- Filters: `column=eq.value`, `column=neq.value`, `column=gt.value`, `column=gte.value`, `column=lt.value`, `column=lte.value`, `column=like.%foo%`, `column=ilike.%foo%`
+
+## Project Layout
+
+```text
+.
+|-- Cargo.toml
+|-- .env.example
+|-- docs/
+|-- README.md
+|-- db/
+|   `-- migrations/
+|       `-- 0001_init.sql
+|-- crates/
+|   |-- evobase-auth/
+|   |-- evobase-core/
+|   |-- evobase-db/
+|   |-- evobase-gateway/
+|   `-- evobase-messaging/
+`-- apps/
+    `-- evobase-server/
+```
+
+## Architecture Diagrams
+
+PlantUML diagrams are available in `docs/diagrams/`.
+Start with:
+
+- `docs/diagrams/01_component_overview.puml`
+- `docs/diagrams/02_auth_rls_sequence.puml`
+- `docs/diagrams/03_messaging_sse_flow.puml`
+- `docs/diagrams/09_rest_gateway_flow.puml`

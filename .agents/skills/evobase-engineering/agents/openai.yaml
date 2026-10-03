@@ -1,0 +1,4 @@
+interface:
+  display_name: "EvoBase Engineering"
+  short_description: "Plan and build checked EvoBase domain contracts"
+  default_prompt: "Use $evobase-engineering to scope this EvoBase change, preserve its invariant, and report proportional evidence."

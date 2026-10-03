@@ -1,160 +1,43 @@
-# evobase
+# EvoBase
 
-`evobase` is a minimal, modular Rust backend platform inspired by Supabase/PostgREST.
-It keeps application logic thin by pushing authorization and row-level access into PostgreSQL.
+EvoBase is becoming a no-code SaaS platform built around typed business tables. Users author data,
+relations and rules through a structured Builder; a versioned **AppSpec** defines their meaning;
+a deterministic Rust core checks them; a tenant host supplies storage, verified authority and effects.
+The product authority is [vision #1](https://github.com/loveoverflowcom/evobase/issues/1).
 
-## Architecture
+The selected stack is **Rust core/backend, Leptos web and Compose Multiplatform mobile**.
+Leptos owns Builder and browser Runtime. CMP starts with mobile Runtime: permitted lists, record
+forms and actions. SQL and expert Rust syntax are adapters/frontends, not prerequisites for users.
 
-- `evobase-core`: shared types, traits, config, and errors
-- `evobase-db`: PostgreSQL adapter and PostgREST-like table access
-- `evobase-auth`: username/password auth with JWT issuance
-- `evobase-messaging`: in-memory SSE notification hub
-- `evobase-gateway`: HTTP routing, middleware, and request parsing
-- `evobase-server`: bootstrap binary
+## Current, selected and deferred
 
-## Features
+| State | Scope and evidence |
+|---|---|
+| Existing baseline | Rust/PostgreSQL table gateway, JWT authentication, introspection and RAM SSE/relay; Flutter client/workbench. Source exists at `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`; this is not an AppSpec host or a durable worker. |
+| Selected experimental refactor | Version 1 JSON definition contract; bounded checked Rust kernel; typed local draft grid/import; N:1 relations, captured values and bounded formulas; a simulated policy/command inspector. Browser local drafts have no authenticated host authority. The current five-commit batch is tracked in the [work plan](docs/work-plan/README.md). |
+| Planned host/runtime | Verified current session/grants, row/field policies and checked commands, database-per-tenant fixed store, immutable releases and schema evolution, native CMP Runtime, durable automation. These require their own acceptance evidence. |
+| Deferred expansions | 1:1/N:M, cascade deletion, broader expression/policy languages, live Email/Zalo/webhooks, messaging/bot, offline authority, production migration and Votable retirement. See the [expansion backlog](docs/work-plan/backlog/support-expansion.md). |
 
-- Username/password register, login, and refresh
-- Access, refresh, and notification JWTs
-- Authenticated SSE connections at `/events`
-- In-memory fan-out messaging at `/messages/send`
-- Offline in-memory relay queue with automatic replay and 3-day TTL
-- PostgREST-like REST table gateway at `/rest/:table`
-- DB introspection docs at `/docs` and `/docs/:table`
-- Request-scoped PostgreSQL claim forwarding via `set_config`
+A design frame or compiled package does not establish authentication, tenant isolation, native mobile
+behavior or provider delivery. Draft preview has zero external dispatch; reusable definitions contain
+neither live records nor secrets, grants or host bindings.
 
-## Quick Start
+## Read and contribute
 
-1. Copy `.env.example` to `.env` and update the secrets.
-2. Run the migration in [`db/migrations/0001_init.sql`](/Users/manhblue/Documents/personal/open_source/evobase/db/migrations/0001_init.sql).
-3. Start the server:
+- [Foundation decisions](docs/work-plan/decisions/010-foundation.md): AppSpec version, IDs, exact values and host seams.
+- [Work plan and issue map](docs/work-plan/README.md): the authorized batch, dependencies and remaining gates.
+- [Architecture](docs/work-plan/architecture.md) and [source inventory/provenance](docs/work-plan/provenance.md).
+- [M3 Expressive design source](design/m3-expressive/README.md): pinned tokens/contracts; static fixtures are design evidence.
+- [Engineering guidance](AGENTS.md): repository owners and scoped verification.
+- [Historical redesign reconciliation](re-design/README.md): retained ideas and superseded Rust-DSL/generated-SQL assumptions.
 
-```bash
-cargo run -p evobase-server
-```
+`develop` is the refactor integration branch. The previous develop head is preserved at
+[`archive/develop-2026-10-03`](https://github.com/loveoverflowcom/evobase/tree/archive/develop-2026-10-03)
+with SHA `4cb5873200f4d735b17b75fdd3cb88c2efdbb322`. History and legacy run documentation remain available.
 
-## Example cURL
+## Run the existing backend
 
-Register:
-
-```bash
-curl -X POST http://127.0.0.1:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"super-secret-password"}'
-```
-
-Login:
-
-```bash
-curl -X POST http://127.0.0.1:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"super-secret-password"}'
-```
-
-Refresh:
-
-```bash
-curl -X POST http://127.0.0.1:3000/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refresh_token":"<refresh-token>"}'
-```
-
-Open an SSE stream:
-
-```bash
-curl -N "http://127.0.0.1:3000/events?token=<notification-token>"
-```
-
-Or use the notification token via header:
-
-```bash
-curl -N http://127.0.0.1:3000/events \
-  -H "Authorization: Bearer <notification-token>"
-```
-
-Send a message:
-
-```bash
-curl -X POST http://127.0.0.1:3000/messages/send \
-  -H "Authorization: Bearer <access-token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to_user_id":"<target-user-id>",
-    "event":"chat.message",
-    "payload":{"body":"hello from evobase"}
-  }'
-```
-
-If the recipient is offline, the message is queued in memory for up to 3 days and replayed on the
-next SSE connection before being removed from the queue.
-The API response now includes `delivered_connections` and `queued_messages` so the client can tell
-whether the event was delivered live or stored for relay.
-
-Read from a table with RLS applied:
-
-```bash
-curl "http://127.0.0.1:3000/rest/public.notes?select=id,body,created_at&order=created_at.desc&limit=10" \
-  -H "Authorization: Bearer <access-token>"
-```
-
-Insert through the REST gateway:
-
-```bash
-curl -X POST http://127.0.0.1:3000/rest/public.notes \
-  -H "Authorization: Bearer <access-token>" \
-  -H "Content-Type: application/json" \
-  -d '{"owner_id":"<user-id>","body":"created via REST gateway"}'
-```
-
-You can also run the scripted version from [`scripts/api-smoke.sh`](/Users/manhblue/Documents/personal/open_source/evobase/scripts/api-smoke.sh).
-
-Read generated docs for all exposed tables:
-
-```bash
-curl http://127.0.0.1:3000/docs
-```
-
-Read generated docs for a single table:
-
-```bash
-curl http://127.0.0.1:3000/docs/public.notes
-```
-
-## Supported REST Query Syntax
-
-- `select=id,body,created_at`
-- `limit=20`
-- `offset=0`
-- `order=created_at.desc,id.asc`
-- Filters: `column=eq.value`, `column=neq.value`, `column=gt.value`, `column=gte.value`, `column=lt.value`, `column=lte.value`, `column=like.%foo%`, `column=ilike.%foo%`
-
-## Project Layout
-
-```text
-.
-|-- Cargo.toml
-|-- .env.example
-|-- docs/
-|-- README.md
-|-- db/
-|   `-- migrations/
-|       `-- 0001_init.sql
-|-- crates/
-|   |-- evobase-auth/
-|   |-- evobase-core/
-|   |-- evobase-db/
-|   |-- evobase-gateway/
-|   `-- evobase-messaging/
-`-- apps/
-    `-- evobase-server/
-```
-
-## Architecture Diagrams
-
-PlantUML diagrams are available in `docs/diagrams/`.
-Start with:
-
-- `docs/diagrams/01_component_overview.puml`
-- `docs/diagrams/02_auth_rls_sequence.puml`
-- `docs/diagrams/03_messaging_sse_flow.puml`
-- `docs/diagrams/09_rest_gateway_flow.puml`
+The original backend architecture, environment setup, SQL migration and API examples are preserved
+in the [legacy backend run guide](docs/LEGACY_BACKEND.md). The [docs map](docs/README.md) points to
+its detailed architecture and Flutter lessons. Those commands run the existing backend, not the
+planned tenant host. No production migration or legacy removal is part of this refactor batch.

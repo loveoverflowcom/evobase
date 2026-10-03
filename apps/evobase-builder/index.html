@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>EvoBase · Local Builder</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="builder.css">
+  </head>
+  <body>
+    <noscript>EvoBase Builder cần JavaScript / JavaScript is required.</noscript>
+    <script type="module">
+      import init from './evobase_builder.js';
+      init().catch(() => {
+        const alert = document.createElement('p');
+        alert.setAttribute('role', 'alert');
+        alert.textContent = 'Không thể mở Builder. Vui lòng tải lại / Builder could not start. Please reload.';
+        document.body.append(alert);
+      });
+    </script>
+  </body>
+</html>

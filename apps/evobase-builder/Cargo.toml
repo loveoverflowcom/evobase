@@ -1,0 +1,22 @@
+[package]
+name = "evobase-builder"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+evobase-appspec = { path = "../../crates/evobase-appspec" }
+leptos = { version = "=0.8.11", features = ["csr"] }
+# Keep the macro paired with this Leptos release; later 0.8 macros target
+# a different typed-builder generation despite their semver range.
+leptos_macro = "=0.8.10"
+serde = { workspace = true }
+serde_json = { workspace = true }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["Window", "Storage", "Document", "Element", "HtmlElement", "HtmlInputElement", "KeyboardEvent", "CompositionEvent", "Event", "History", "Location"] }

@@ -93,3 +93,84 @@ Its report distinguishes DOM scenarios, axe findings and captured images; pixels
 must be opened separately for inspection. Browser composition events do not prove
 native IME, screen-reader or CMP behavior. The local fixture does not establish
 hosted conflict resolution, auth expiration, deployment or provider behavior.
+
+## Generated HTTP Runtime
+
+Open `http://127.0.0.1:4173/?runtime=1`, or follow **Open Runtime** in the Builder.
+This separate mounted consumer reads the pilot host's runtime metadata and records,
+then generates inputs/actions for the selected permitted record. It consumes the
+host's immutable release identity, exact data revision and current eligible record
+IDs; it does not use the editable Builder draft. Host authorization and the checked
+Rust executor still enforce every operation.
+
+Build and configure the host using [its quickstart](../evobase-host/README.md).
+For the checked-in synthetic examples, use tenant `tenant_demo`, app `app_support`
+or `app_library` and their matching JSON files:
+
+```sh
+EVOBASE_TENANT_ID=tenant_demo EVOBASE_APP_ID=app_support \
+EVOBASE_DB_URL=file:/tmp/evobase-support.db \
+target/debug/evobase-host fixture-bootstrap \
+  crates/evobase-appspec/tests/fixtures/support-v2.json \
+  crates/evobase-appspec/tests/fixtures/support-records.json
+```
+
+Serve that configured host with `EVOBASE_ALLOWED_ORIGINS=http://127.0.0.1:4173` and
+an operator-issued credential file. In Runtime enter its server address, app identity
+and credential. HTTP is allowed for loopback development; other addresses require
+HTTPS. The library example uses `library-v2.json`, `library-records.json`, app
+`app_library` and a separate configured host/database. These unrelated definitions
+run through the same generated consumer without application-specific screens.
+
+Credentials, server records and unresolved requests remain in window memory and
+are never written to Builder snapshots or browser storage. Disconnect clears the
+credential and protected read context; context changes and unmount cancel reads.
+Current generation checks reject obsolete responses. Changing a selected record
+clears its prior input buffers, including automatic selection when permission
+changes remove that record. A denied response hides protected metadata, records
+and receipts; the same-record draft and unresolved request stay in memory until
+current authorization is re-established. Untouched optional command inputs remain absent,
+preserving their stored values; explicitly clearing one sends Blank for host
+validation. A visible success requires a matching server receipt.
+
+When an acknowledgement is lost, Runtime keeps the exact serialized request/key
+and offers receipt recovery or an identical retry under the current credential.
+It locks the original app/server binding until that request is reconciled. Closing
+or reloading loses this window's pending request, so recovery across reload is not
+supported. Listing is bounded to 100 records and explicitly reports truncation.
+This pilot has no CMP/native renderer, hosted login provider or deployment flow.
+
+The browser runner requires two freshly bootstrapped local hosts and a synthetic
+support access file that it briefly revokes and restores. It crosses the real HTTP
+and libSQL boundaries; Playwright only delays or drops responses after actual host
+execution to exercise stale reads and lost acknowledgements:
+
+```sh
+PLAYWRIGHT_MODULE_PATH=/path/to/playwright/index.mjs \
+AXE_MODULE_PATH=/path/to/@axe-core/playwright/dist/index.mjs \
+RUNTIME_URL=http://127.0.0.1:4173/?runtime=1 \
+RUNTIME_SUPPORT_HOST=http://127.0.0.1:8080 \
+RUNTIME_LIBRARY_HOST=http://127.0.0.1:8081 \
+RUNTIME_TOKEN="$synthetic_pilot_token" \
+RUNTIME_SUPPORT_ACCESS_FILE=/tmp/evobase-support-access.json \
+EVIDENCE_DIR=/tmp/evobase-runtime-evidence node scripts/check_runtime.mjs
+```
+
+The scenarios consume the examples' initial transitions. Recreate their synthetic
+databases before repeating the runner. Reports and captured images are attributable
+to that run; open the images separately before claiming inspected pixels.
+
+To provision fresh synthetic databases/access files, run both local hosts and clean
+them up automatically (after building the host and serving the browser build):
+
+```sh
+PLAYWRIGHT_MODULE_PATH=/path/to/playwright/index.mjs \
+AXE_MODULE_PATH=/path/to/@axe-core/playwright/dist/index.mjs \
+EVIDENCE_DIR=/tmp/evobase-runtime-evidence bash scripts/check-runtime.sh
+```
+
+This wrapper uses loopback ports 18080 and 18081, generates a short-lived test
+credential, and retains no credential in reports. It adds a second library record
+and makes its note input optional to exercise untouched-value preservation. Its
+second support record belongs to another actor, with explicit auditor/editor
+roles, to check selection and input clearing after read authority changes.

@@ -720,6 +720,7 @@ name = "evobase-builder"
 version = "0.1.0"
 dependencies = [
  "evobase-appspec",
+ "evobase-protocol",
  "js-sys",
  "leptos",
  "leptos_macro",

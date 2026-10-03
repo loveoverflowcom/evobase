@@ -10,6 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 evobase-appspec = { path = "../../crates/evobase-appspec" }
+evobase-protocol = { path = "../../crates/evobase-protocol", default-features = false }
 leptos = { version = "=0.8.11", features = ["csr"] }
 # Keep the macro paired with this Leptos release; later 0.8 macros target
 # a different typed-builder generation despite their semver range.

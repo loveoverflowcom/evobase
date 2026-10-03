@@ -23,6 +23,15 @@ h3{font-size:var(--type-bodyLarge-size);font-weight:600}
 .brand{display:flex;gap:12px;align-items:center;font-size:var(--type-title-size);font-weight:600}
 .brand-mark{display:grid;place-items:center;background:var(--primary);color:var(--onPrimary);width:44px;height:44px;border-radius:16px}
 .top-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.top-controls a{color:var(--primary);padding:12px;min-height:var(--layout-touchTarget)}
+.runtime-main{padding:24px}
+.runtime-records{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.runtime-record{background:var(--surfaceContainerLowest);border-radius:var(--shape-medium);padding:16px;display:grid;gap:12px;min-width:0}
+.runtime-record button{justify-self:start}
+.runtime-record dl{display:grid;gap:12px;margin:0}
+.runtime-record dl div{display:grid;gap:4px}
+.runtime-record dt{font-size:var(--type-label-size);color:var(--onSurfaceVariant)}
+.runtime-record dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .local-tag{padding:4px 12px;border-radius:999px;background:var(--tertiaryContainer);color:var(--onTertiaryContainer);font-size:12px;font-weight:600}
 .layout{display:grid;grid-template-columns:216px minmax(0,1fr);gap:24px;padding:24px}
 .rail{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:24px;background:var(--surfaceContainerLow);align-self:start}
@@ -82,4 +91,5 @@ details p{margin:8px 0}
 @media(max-width:999px){.layout{grid-template-columns:1fr}.rail{flex-direction:row;flex-wrap:wrap;align-items:center}.rail button{width:auto}.rail small{width:100%}.topbar{align-items:flex-start}.inspector{grid-template-columns:1fr}}
 @media(max-width:599px){.topbar,.layout{padding:16px}.topbar{flex-direction:column;gap:12px}.top-controls{width:100%}.brand{font-size:22px}.local-tag{font-size:11px}.overview{padding:20px;border-radius:24px}h1{font-size:26px;line-height:34px}.desktop-authoring{display:none}.compact-handoff{display:grid;gap:16px}.rail button{min-width:100px}.layout{gap:16px}.preview-form{grid-template-columns:1fr}.actions button{flex:1}.toolbar{align-items:flex-start}.surface{padding:16px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media(max-width:599px){.runtime-main{padding:16px}}
 @media(forced-colors:active){button,input,select,textarea{border:1px solid CanvasText}.selected{outline:2px solid Highlight}}

@@ -3,6 +3,7 @@
 pub mod constraints;
 pub mod policy;
 pub mod relations;
+pub mod runtime;
 
 use evobase_appspec::relations::{BatchChange, LocalPreviewPolicy, RelationError, RelationStore};
 use evobase_appspec::{
@@ -899,6 +900,7 @@ pub fn App() -> impl IntoView {
             <header class="topbar">
                 <div class="brand"><span class="brand-mark" aria-hidden="true">"E"</span>"EvoBase" <span class="local-tag">{move || tr(locale.get(), "Nháp trên thiết bị", "Local draft")}</span></div>
                 <div class="top-controls">
+                    <a href="?runtime=1">{move || tr(locale.get(), "Mở Runtime", "Open Runtime")}</a>
                     <button data-testid="locale" on:click=move |_| {
                         locale.update(|v| *v = !*v);
                         if !errors.get_untracked().is_empty() {
@@ -1062,5 +1064,17 @@ fn focus_first_error() {
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    leptos::mount::mount_to_body(App);
+    let runtime = web_sys::window()
+        .and_then(|window| window.location().search().ok())
+        .is_some_and(|query| {
+            query
+                .trim_start_matches('?')
+                .split('&')
+                .any(|part| part == "runtime=1")
+        });
+    if runtime {
+        leptos::mount::mount_to_body(runtime::RuntimeApp);
+    } else {
+        leptos::mount::mount_to_body(App);
+    }
 }

@@ -120,6 +120,11 @@ pub struct BindingFacts {
 
 /// Implement only in the trusted host. A fixture implementation establishes no real identity.
 pub trait SessionVerifier {
+    /// A deployed host overrides this with its trusted clock for every revalidation.
+    /// Deterministic core fixtures retain explicitly injected time.
+    fn current_time(&self, provided_now: u64) -> u64 {
+        provided_now
+    }
     fn verify_session(&self, credential: &str) -> Result<SessionFacts, AuthorityError>;
     fn current_membership(
         &self,
@@ -127,6 +132,18 @@ pub trait SessionVerifier {
         scope: &Scope,
     ) -> Result<MembershipFacts, AuthorityError>;
     fn registry_binding(&self, scope: &Scope) -> Result<BindingFacts, AuthorityError>;
+    /// Hosts backed by mutable configuration override this to load one coherent access snapshot.
+    /// The default preserves existing fixture adapters; it does not promise an atomic source read.
+    fn access_snapshot(
+        &self,
+        credential: &str,
+        scope: &Scope,
+    ) -> Result<(SessionFacts, MembershipFacts, BindingFacts), AuthorityError> {
+        let session = self.verify_session(credential)?;
+        let membership = self.current_membership(&session.actor, scope)?;
+        let binding = self.registry_binding(scope)?;
+        Ok((session, membership, binding))
+    }
 }
 
 /// The trusted transport chooses the channel and supplies the actual request Origin header.
@@ -141,7 +158,7 @@ pub enum RequestChannel {
 /// use evobase_appspec::policy::TrustedContext;
 /// let _: TrustedContext = serde_json::from_str("{}").unwrap();
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TrustedContext {
     actor: ActorId,
     scope: Scope,
@@ -186,14 +203,14 @@ impl<V: SessionVerifier> HostAuthority<V> {
         if credential.is_empty() {
             return Err(AuthorityError::MissingSession);
         }
-        let session = self.verifier.verify_session(credential)?;
+        let now = self.verifier.current_time(now);
+        let (session, membership, binding) = self.verifier.access_snapshot(credential, scope)?;
         if session.revoked {
             return Err(AuthorityError::Revoked);
         }
         if now >= session.expires_at {
             return Err(AuthorityError::Expired);
         }
-        let membership = self.verifier.current_membership(&session.actor, scope)?;
         if membership.actor != session.actor || membership.scope != *scope {
             return Err(AuthorityError::WrongScope);
         }
@@ -203,7 +220,6 @@ impl<V: SessionVerifier> HostAuthority<V> {
         if !membership.grants.contains(&grant) {
             return Err(AuthorityError::MissingGrant);
         }
-        let binding = self.verifier.registry_binding(scope)?;
         if binding.scope != *scope {
             return Err(AuthorityError::WrongScope);
         }
@@ -332,7 +348,12 @@ impl OwnerRolePolicy {
             _ => &self.rule.write_roles,
         }
     }
-    fn allows(&self, context: &TrustedContext, row: &CheckedRecord, grant: Grant) -> bool {
+    pub(crate) fn allows(
+        &self,
+        context: &TrustedContext,
+        row: &CheckedRecord,
+        grant: Grant,
+    ) -> bool {
         row.scope() == context.scope()
             && row.table_id() == &self.rule.table_id
             && (matches!(row.values().get(&self.rule.owner_field), Some(Value::Text(owner)) if owner == context.actor.as_str())
@@ -341,7 +362,11 @@ impl OwnerRolePolicy {
                     .iter()
                     .any(|role| context.roles.contains(role)))
     }
-    fn check_scope(&self, scope: &Scope, facts: &CheckedRecords) -> Result<(), PolicyError> {
+    pub(crate) fn check_scope(
+        &self,
+        scope: &Scope,
+        facts: &CheckedRecords,
+    ) -> Result<(), PolicyError> {
         if scope.app_id() != &self.app_id || facts.scope() != scope {
             return Err(PolicyError::ScopeMismatch);
         }

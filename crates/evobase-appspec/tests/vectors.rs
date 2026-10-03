@@ -316,6 +316,8 @@ pub fn value_vectors() {
         policies: Vec::new(),
         submit_rules: Vec::new(),
         constraints: Vec::new(),
+        state_machines: Vec::new(),
+        commands: Vec::new(),
         tables: vec![RawTable {
             id: table("tbl_sparse"),
             name: "Sparse".to_owned(),

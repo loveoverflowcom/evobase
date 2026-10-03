@@ -1,0 +1,1 @@
+[{"scope":{"tenant_id":"tenant_demo","app_id":"app_library"},"id":"rec_loan_1","table_id":"tbl_loans","values":{"fld_loan_days":{"type":"integer","value":14},"fld_loan_note":{"type":"blank"},"fld_loan_owner":{"type":"text","value":"actor_alice"},"fld_loan_state":{"type":"text","value":"borrowed"}}}]

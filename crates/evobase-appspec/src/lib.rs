@@ -1,6 +1,7 @@
 //! Bounded, deterministic AppSpec definitions and final-state fact validation.
 //! Definitions and scoped facts contain no host grants. Checked values cannot be deserialized.
 mod codec;
+pub mod commands;
 mod constraints;
 mod error;
 pub mod fixtures;
@@ -12,7 +13,9 @@ mod value;
 
 pub use constraints::{Constraint, RawFieldConstraint};
 pub use error::Error;
-pub use id::{AppId, ConstraintId, FieldId, RecordId, Scope, TableId};
+pub use id::{
+    AppId, CommandId, ConstraintId, EventId, FieldId, RecordId, Scope, StateMachineId, TableId,
+};
 pub use model::{CaptureRule, CheckedAppSpec, FieldType, RawAppSpec, RawField, RawTable};
 pub use value::{CheckedRecord, CheckedRecords, RawRecord, RecordRef, Value};
 

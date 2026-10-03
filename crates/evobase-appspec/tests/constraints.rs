@@ -31,6 +31,8 @@ fn definition(app: &str, table: &str) -> RawAppSpec {
             ],
         }],
         capture_rules: vec![],
+        state_machines: vec![],
+        commands: vec![],
         policies: vec![],
         submit_rules: vec![],
         constraints: vec![

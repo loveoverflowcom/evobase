@@ -51,6 +51,9 @@ identity!(TableId, "tbl_", "table");
 identity!(FieldId, "fld_", "field");
 identity!(RecordId, "rec_", "record");
 identity!(ConstraintId, "constraint_", "constraint");
+identity!(CommandId, "cmd_", "command");
+identity!(StateMachineId, "machine_", "state machine");
+identity!(EventId, "event_", "event");
 
 /// A syntactically valid scope supplied by the caller; it does not establish authorization.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]

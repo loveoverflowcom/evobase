@@ -20,6 +20,10 @@ pub struct RawAppSpec {
     pub submit_rules: Vec<crate::policy::RawSubmitOrderRule>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub constraints: Vec<crate::RawFieldConstraint>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub state_machines: Vec<crate::commands::RawStateMachine>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub commands: Vec<crate::commands::RawCommand>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -104,6 +108,18 @@ impl CheckedAppSpec {
                 limit: crate::MAX_CONSTRAINTS,
             });
         }
+        for (declaration, present) in [
+            ("state_machines", !definition.state_machines.is_empty()),
+            ("commands", !definition.commands.is_empty()),
+        ] {
+            if definition.version == 1 && present {
+                return Err(Error::UnsupportedDeclaration {
+                    version: 1,
+                    declaration,
+                });
+            }
+        }
+        crate::commands::check_limits(&definition)?;
         if definition.tables.len() > MAX_TABLES {
             return Err(Error::LimitExceeded {
                 resource: "tables",
@@ -172,6 +188,17 @@ impl CheckedAppSpec {
         definition
             .constraints
             .sort_by(|a, b| a.constraint_id.cmp(&b.constraint_id));
+        definition
+            .state_machines
+            .sort_by(|a, b| a.machine_id.cmp(&b.machine_id));
+        definition
+            .commands
+            .sort_by(|a, b| a.command_id.cmp(&b.command_id));
+        for command in &mut definition.commands {
+            command.inputs.sort_by(|a, b| a.field_id.cmp(&b.field_id));
+            command.guards.sort_by(|a, b| a.field_id.cmp(&b.field_id));
+            command.events.sort_by(|a, b| a.event_id.cmp(&b.event_id));
+        }
         let spec = Self { definition };
         crate::constraints::check_constraints(&spec)?;
         let mut captured = BTreeSet::new();
@@ -269,6 +296,7 @@ impl CheckedAppSpec {
                 }
             })?;
         }
+        crate::commands::check_declarations(&spec)?;
         Ok(spec)
     }
     pub fn definition(&self) -> &RawAppSpec {

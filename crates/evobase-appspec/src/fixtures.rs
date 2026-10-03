@@ -88,6 +88,8 @@ pub fn example_spec() -> RawAppSpec {
         policies: vec![],
         submit_rules: vec![],
         constraints: vec![],
+        state_machines: vec![],
+        commands: vec![],
     }
 }
 
@@ -196,4 +198,200 @@ pub fn example_records(scope: &Scope) -> Vec<RawRecord> {
             ],
         ),
     ]
+}
+
+/// A synthetic request-resolution app, using the same declared executor as the unrelated library.
+pub fn support_workflow_spec() -> RawAppSpec {
+    workflow_spec(
+        "support",
+        "requests",
+        "request",
+        "Support requests",
+        "open",
+        "resolved",
+        "cmd_resolve_request",
+        2,
+    )
+}
+
+/// A synthetic library-return app; these business labels remain fixture data.
+pub fn library_workflow_spec() -> RawAppSpec {
+    workflow_spec(
+        "library",
+        "loans",
+        "loan",
+        "Library loans",
+        "borrowed",
+        "returned",
+        "cmd_return_loan",
+        14,
+    )
+}
+
+fn workflow_spec(
+    app: &str,
+    table_suffix: &str,
+    prefix: &str,
+    name: &str,
+    from: &str,
+    to: &str,
+    command_id: &str,
+    count: i64,
+) -> RawAppSpec {
+    use crate::commands::{
+        CommandGuard, CommandInput, RawCommand, RawEventIntent, RawStateMachine,
+    };
+    use crate::policy::{RawOwnerRolePolicy, RoleId};
+    use crate::{CommandId, Constraint, ConstraintId, EventId, RawFieldConstraint, StateMachineId};
+    let table_id = TableId::new(format!("tbl_{table_suffix}")).unwrap();
+    let owner = FieldId::new(format!("fld_{prefix}_owner")).unwrap();
+    let state = FieldId::new(format!("fld_{prefix}_state")).unwrap();
+    let note = FieldId::new(format!("fld_{prefix}_note")).unwrap();
+    let count_field = FieldId::new(if prefix == "request" {
+        "fld_request_priority"
+    } else {
+        "fld_loan_days"
+    })
+    .unwrap();
+    let machine_id = StateMachineId::new(format!("machine_{prefix}")).unwrap();
+    let policy_id = format!("rule_{prefix}_owner");
+    RawAppSpec {
+        version: crate::FORMAT_VERSION,
+        app_id: AppId::new(format!("app_{app}")).unwrap(),
+        name: name.to_owned(),
+        tables: vec![RawTable {
+            id: table_id.clone(),
+            name: name.to_owned(),
+            fields: vec![
+                RawField {
+                    id: owner.clone(),
+                    name: "Owner".to_owned(),
+                    required: true,
+                    field_type: FieldType::Text,
+                },
+                RawField {
+                    id: state.clone(),
+                    name: "State".to_owned(),
+                    required: true,
+                    field_type: FieldType::Text,
+                },
+                RawField {
+                    id: note.clone(),
+                    name: "Note".to_owned(),
+                    required: false,
+                    field_type: FieldType::Text,
+                },
+                RawField {
+                    id: count_field.clone(),
+                    name: if prefix == "request" {
+                        "Priority"
+                    } else {
+                        "Days"
+                    }
+                    .to_owned(),
+                    required: true,
+                    field_type: FieldType::Integer,
+                },
+            ],
+        }],
+        capture_rules: vec![],
+        submit_rules: vec![],
+        policies: vec![RawOwnerRolePolicy {
+            rule_id: policy_id.clone(),
+            revision: 1,
+            table_id: table_id.clone(),
+            owner_field: owner,
+            read_fields: [state.clone(), note.clone(), count_field.clone()]
+                .into_iter()
+                .collect(),
+            read_roles: [RoleId::new("role_auditor").unwrap()].into_iter().collect(),
+            write_roles: [RoleId::new("role_editor").unwrap()].into_iter().collect(),
+            submit_roles: Default::default(),
+        }],
+        constraints: vec![
+            RawFieldConstraint {
+                constraint_id: ConstraintId::new(format!("constraint_{prefix}_note")).unwrap(),
+                table_id: table_id.clone(),
+                field_id: note.clone(),
+                constraint: Constraint::TextLength { min: 0, max: 200 },
+            },
+            RawFieldConstraint {
+                constraint_id: ConstraintId::new(format!("constraint_{prefix}_count")).unwrap(),
+                table_id: table_id.clone(),
+                field_id: count_field.clone(),
+                constraint: Constraint::NumericRange { min: 1, max: 30 },
+            },
+        ],
+        state_machines: vec![RawStateMachine {
+            machine_id: machine_id.clone(),
+            table_id,
+            state_field: state.clone(),
+            states: [from.to_owned(), to.to_owned()].into_iter().collect(),
+            terminal_states: [to.to_owned()].into_iter().collect(),
+        }],
+        commands: vec![RawCommand {
+            command_id: CommandId::new(command_id).unwrap(),
+            revision: 1,
+            policy_rule_id: policy_id,
+            state_machine_id: machine_id,
+            from_state: from.to_owned(),
+            to_state: to.to_owned(),
+            inputs: vec![
+                CommandInput {
+                    field_id: note.clone(),
+                    required: true,
+                    constraints: vec![
+                        Constraint::NonEmpty,
+                        Constraint::TextLength { min: 1, max: 200 },
+                    ],
+                },
+                CommandInput {
+                    field_id: count_field.clone(),
+                    required: false,
+                    constraints: vec![Constraint::NumericRange { min: 1, max: 30 }],
+                },
+            ],
+            guards: vec![CommandGuard {
+                field_id: count_field,
+                equals: Value::Integer(count),
+            }],
+            events: vec![RawEventIntent {
+                event_id: EventId::new(format!("event_{prefix}_completed")).unwrap(),
+                fields: [state, note].into_iter().collect(),
+            }],
+        }],
+    }
+}
+
+pub fn support_workflow_records(scope: &Scope) -> Vec<RawRecord> {
+    let first = record(
+        scope,
+        "tbl_requests",
+        "rec_request_1",
+        vec![
+            ("fld_request_owner", Value::Text("actor_alice".to_owned())),
+            ("fld_request_state", Value::Text("open".to_owned())),
+            ("fld_request_priority", Value::Integer(2)),
+        ],
+    );
+    vec![
+        first.clone(),
+        RawRecord {
+            id: RecordId::new("rec_request_2").unwrap(),
+            ..first
+        },
+    ]
+}
+
+pub fn library_workflow_records(scope: &Scope) -> Vec<RawRecord> {
+    vec![record(
+        scope,
+        "tbl_loans",
+        "rec_loan_1",
+        vec![
+            ("fld_loan_owner", Value::Text("actor_alice".to_owned())),
+            ("fld_loan_state", Value::Text("borrowed".to_owned())),
+            ("fld_loan_days", Value::Integer(14)),
+        ],
+    )]
 }

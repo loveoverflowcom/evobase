@@ -41,7 +41,9 @@ pub struct RawRecord {
     pub values: BTreeMap<FieldId, Value>,
 }
 
-fn unique_values<'de, D: Deserializer<'de>>(de: D) -> Result<BTreeMap<FieldId, Value>, D::Error> {
+pub(crate) fn unique_values<'de, D: Deserializer<'de>>(
+    de: D,
+) -> Result<BTreeMap<FieldId, Value>, D::Error> {
     struct Visitor;
     impl<'de> serde::de::Visitor<'de> for Visitor {
         type Value = BTreeMap<FieldId, Value>;
@@ -255,6 +257,17 @@ impl CheckedAppSpec {
                             });
                         }
                     }
+                }
+                if let Some(machine) = self.definition().state_machines.iter().find(|machine| {
+                    machine.table_id == record.table_id
+                        && machine.state_field == field.id
+                        && !matches!(value, Value::Text(state) if machine.states.contains(state))
+                }) {
+                    return Err(Error::InvalidStateValue {
+                        record: record.id.clone(),
+                        field: field.id.clone(),
+                        machine: machine.machine_id.clone(),
+                    });
                 }
                 values.insert(field.id.clone(), value.clone());
             }

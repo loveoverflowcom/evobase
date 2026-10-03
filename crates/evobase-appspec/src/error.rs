@@ -1,4 +1,4 @@
-use crate::{AppId, ConstraintId, FieldId, RecordId, TableId};
+use crate::{AppId, CommandId, ConstraintId, FieldId, RecordId, StateMachineId, TableId};
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
@@ -44,6 +44,22 @@ pub enum Error {
         record: RecordId,
         field: FieldId,
         constraint: ConstraintId,
+    },
+    #[error("invalid state machine {machine}: {reason}")]
+    InvalidStateMachine {
+        machine: StateMachineId,
+        reason: &'static str,
+    },
+    #[error("invalid command {command}: {reason}")]
+    InvalidCommand {
+        command: CommandId,
+        reason: &'static str,
+    },
+    #[error("state field {field} in record {record} has no declared state")]
+    InvalidStateValue {
+        record: RecordId,
+        field: FieldId,
+        machine: StateMachineId,
     },
     #[error("expected app {expected}; received app {actual}")]
     WrongApp { expected: AppId, actual: AppId },

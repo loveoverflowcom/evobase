@@ -63,6 +63,13 @@ current-authority checks before receipt replay. Sandbox writes and receipts stay
 in memory and are explicitly simulated; there is no verified host/API adapter or
 atomic persistent command transaction here.
 
+The data-rule inspector authors canonical AppSpec constraints for text non-empty,
+Unicode character length and inclusive integer/money ranges. Adding a rule upgrades
+the definition to format 2, compiles it and validates all existing records before
+changing the draft. Invalid rules retain both inputs and prior facts. Grid, form,
+paste/import, save and restore use the same Rust evaluator; optional Blank/Null
+values remain optional. Save/Cancel include these declarations with the definition.
+
 Local persistence stores opaque canonical definition and record JSON strings.
 Restore passes through the checked Rust codecs, including their byte/depth/node
 budgets. Failed restoration preserves the source bytes and disables saving in

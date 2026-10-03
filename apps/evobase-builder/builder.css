@@ -56,6 +56,8 @@ input.managed{background:var(--surfaceContainer);border-color:var(--outlineVaria
 .ref-label{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--secondaryContainer);color:var(--onSecondaryContainer);margin-top:4px;font-size:12px}
 .support{font-size:12px;color:var(--onSurfaceVariant)}
 .field-list{display:grid;gap:8px}
+.constraint-list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.constraint-list li{display:grid;gap:8px;padding:12px;background:var(--surfaceContainerLowest);border-radius:var(--shape-medium);overflow-wrap:anywhere}
 .field-row{background:var(--surfaceContainerLowest);padding:12px;border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .field-row small{display:block;color:var(--onSurfaceVariant)}
 .field-form{display:grid;gap:12px}

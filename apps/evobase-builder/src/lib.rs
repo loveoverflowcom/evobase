@@ -1,5 +1,6 @@
 //! A mounted local-only Builder. Checked Rust definitions own validation;
 //! browser state owns unsaved input, selection, focus and local persistence.
+pub mod constraints;
 pub mod policy;
 pub mod relations;
 
@@ -189,6 +190,16 @@ fn diagnostic(error: &Error, vi: bool) -> String {
             "Trường bắt buộc không được để trống hoặc null.",
             "Required fields cannot be blank or null.",
         ),
+        Error::ConstraintViolation { .. } => tr(
+            vi,
+            "Giá trị không đáp ứng quy tắc dữ liệu của trường.",
+            "Value does not satisfy this field's data rule.",
+        ),
+        Error::InvalidConstraint { .. } => tr(
+            vi,
+            "Quy tắc không tương thích với kiểu trường hoặc giới hạn không hợp lệ.",
+            "The rule is incompatible with the field type or its bounds are invalid.",
+        ),
         Error::AmbiguousReference { .. } => tr(
             vi,
             "Tên liên kết trùng lặp. Chọn định danh bản ghi rõ ràng.",
@@ -334,7 +345,9 @@ fn candidate(
     apply_draft_changes(&checked, &scope, records, output).map_err(|error| {
         let key = match &error {
             RelationError::Kernel(
-                Error::Required { record, field } | Error::WrongType { record, field, .. },
+                Error::Required { record, field }
+                | Error::WrongType { record, field, .. }
+                | Error::ConstraintViolation { record, field, .. },
             ) => records
                 .iter()
                 .find(|r| &r.id == record)
@@ -468,7 +481,9 @@ fn prepare_import(
     output.map_err(|error| {
         let (record, field) = match &error {
             RelationError::Kernel(
-                Error::Required { record, field } | Error::WrongType { record, field, .. },
+                Error::Required { record, field }
+                | Error::WrongType { record, field, .. }
+                | Error::ConstraintViolation { record, field, .. },
             ) => (Some(record), Some(field)),
             RelationError::CaptureInputForbidden { field }
             | RelationError::CaptureSourceInvalid { field } => (
@@ -1012,6 +1027,7 @@ pub fn App() -> impl IntoView {
                                     </div>
                                     <Show when=move || errors.get().contains_key("field") || errors.get().contains_key("definition")><p class="error-panel" role="alert" id="app-name-error">{move || { let diagnostics = errors.get(); diagnostics.get("field").or_else(|| diagnostics.get("definition")).cloned().unwrap_or_default() }}</p></Show>
                                 </section>
+                                <constraints::ConstraintInspector spec rows=records table_id locale saving paused on_source_change=Callback::new(move |_| status.set(Status::Dirty))/>
                                 <relations::RelationInspector locale/>
                                 <policy::PolicyInspector spec rows=records table_id locale saving=saving paused=paused on_source_change=Callback::new(move |_| status.set(Status::Dirty))/>
                                 <section class="surface"><details><summary>{move || tr(locale.get(), "Mô phỏng gián đoạn", "Interruption simulation")}</summary><p class="support">{move || tr(locale.get(), "Chỉ thử trạng thái cục bộ. Không có đăng nhập hay phiên máy chủ.", "Local state exercise only. There is no sign-in or server session.")}</p><button data-testid="session-toggle" disabled=move || saving.get() on:click=move |_| { paused.update(|v| *v = !*v); status.set(if paused.get_untracked() { Status::Expired } else { Status::Dirty }); }>{move || tr(locale.get(), if paused.get() { "Tiếp tục chỉnh nháp" } else { "Mô phỏng phiên hết hạn" }, if paused.get() { "Resume draft editing" } else { "Simulate session expiry" })}</button></details></section>

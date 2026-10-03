@@ -387,6 +387,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "evobase-appspec"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "evobase-auth"
 version = "0.1.0"
 dependencies = [

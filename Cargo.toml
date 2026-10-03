@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/evobase-appspec",
     "apps/evobase-server",
     "crates/evobase-auth",
     "crates/evobase-core",

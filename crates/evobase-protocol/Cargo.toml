@@ -5,8 +5,13 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+default = ["legacy"]
+legacy = ["dep:evobase-core", "dep:uuid"]
+
 [dependencies]
-evobase-core = { path = "../evobase-core" }
+evobase-appspec = { path = "../evobase-appspec" }
+evobase-core = { path = "../evobase-core", optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-uuid = { workspace = true }
+uuid = { workspace = true, optional = true }

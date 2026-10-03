@@ -2,6 +2,10 @@
 
 Protocol layer for EvoBase containing DTOs (Data Transfer Objects) and API response envelopes.
 
+The generic AppSpec API uses the separate public `appspec` module described in
+[the v1 contract](APPSPEC_V1.md). Legacy DTOs and envelopes below remain unchanged and do not
+define the AppSpec API or authorize access to its configured host.
+
 ## Purpose
 
 This crate defines the wire format for HTTP requests and responses. It acts as a translation layer between HTTP JSON and internal domain types.

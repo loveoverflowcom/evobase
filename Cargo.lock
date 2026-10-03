@@ -765,6 +765,7 @@ dependencies = [
 name = "evobase-protocol"
 version = "0.1.0"
 dependencies = [
+ "evobase-appspec",
  "evobase-core",
  "serde",
  "serde_json",

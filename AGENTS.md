@@ -4,8 +4,9 @@
 
 Read the nearest owner documentation and pin the source revision before acting. A request for
 designs, skills, review or PR prompts authorizes that deliverable, not implementation of the
-future prompts. The current user request authorizes approximately five sequential refactor commits
-on `develop`, followed by truthful issue updates. Execute that bounded batch without repeating
+future prompts. The current user request authorizes ten additional implementation commits
+on `develop` and a push, with one tenant first and multi-tenant work deferred. The earlier
+five-commit batch is complete. Execute this bounded batch without repeating
 the old one-PR selection gate; report incomplete acceptance explicitly. Broader queue items remain
 future work.
 

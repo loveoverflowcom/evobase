@@ -1,7 +1,26 @@
 # EvoBase reboot: skills, designs and sequential PR prompts
 
-**Current scope: the user authorized approximately five sequential refactor commits on `develop`,
-then closing or marking only the issue work supported by actual evidence.** The initial planning
+**Current scope: ten additional implementation commits on `develop`, then push that branch.
+Implement one tenant first; multi-tenant work is deferred.** Use the engineering/UI/review skills,
+the [single-tenant libSQL ADR](decisions/020-single-tenant-libsql.md) and
+[new batch evidence](next-batch-evidence.md). The current recommended sequence is:
+
+1. [160 Profile and trust boundary](160-single-tenant-profile.md)
+2. [170 Declarative constraints](170-declarative-constraints.md)
+3. [180 Generic transitions and events](180-generic-transitions.md)
+4. [190 libSQL fixed store](190-libsql-fixed-store.md)
+5. [200 Atomic command commit](200-atomic-command-commit.md)
+6. [210 Versioned wire contract](210-versioned-appspec-protocol.md)
+7. [220 Single-tenant HTTP host](220-single-tenant-http-host.md)
+8. [230 Builder constraint authoring](230-builder-constraints.md)
+9. [240 Generated HTTP Runtime](240-generated-runtime.md)
+10. [250 Integration and evidence](250-batch-integration.md)
+
+Numeric prefixes represent the recommended sequence, may be renumbered, and are not permanent IDs.
+GitHub remains the issue tracker; these files define this batch's review boundaries. Full command
+authoring, release evolution, providers and native CMP retain their existing gates.
+
+The earlier five sequential refactor commits are complete. Their historical planning
 handoff is now an input to that implementation batch; its prior one-PR selection/stop instructions
 are historical, not a new approval requirement. The selected stack remains Rust core/backend,
 Leptos web and Compose Multiplatform mobile.
@@ -33,14 +52,16 @@ fixed-store acceptance.
 Numeric prefixes below are dependency ordering markers, not permanent task IDs. Renumber if
 verified dependencies change. This folder owns prompts/gates; GitHub owns discussion/assignment.
 
-## Next work before storage
+## Dependencies reconciled for the current batch
 
-Finish the remaining #3/#4 browser acceptance with the current artifact: complete structured
+The previous queue called for finishing the remaining #3/#4 browser acceptance: complete structured
 authoring/Ref-resolution flows, full accessibility/input evidence and the honest boundary between
 local interruption simulation and a real session. Add #5 portable formula declarations, authoring
 and export against the same checked semantics. Complete #6 with a verified host/session/API
 adapter and supported output-policy coverage, including explicit denial of unsupported restricted
-joins/complete scans. Only then begin [060 isolated storage](060-isolated-fixed-store.md), whose
+joins/complete scans. The current single-tenant batch supplies a verified host and generic checked
+execution for its narrower storage profile; [060 isolated PostgreSQL storage](060-isolated-fixed-store.md)
+remains a separate future spike, whose
 trusted routing, authorization-before-replay and atomic command executor depend on those contracts.
 CMP/native, provider and broader vision gates remain separate.
 

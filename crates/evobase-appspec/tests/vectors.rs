@@ -38,14 +38,14 @@ pub fn golden_vectors() {
         CheckedAppSpec::decode(include_bytes!("fixtures/commerce-v0.json")),
         Err(Error::UnsupportedVersion {
             found: 0,
-            supported: 1
+            supported: FORMAT_VERSION
         })
     );
     assert_eq!(
-        CheckedAppSpec::decode(include_bytes!("fixtures/commerce-v2.json")),
+        CheckedAppSpec::decode(include_bytes!("fixtures/commerce-v3.json")),
         Err(Error::UnsupportedVersion {
-            found: 2,
-            supported: 1
+            found: 3,
+            supported: FORMAT_VERSION
         })
     );
     json_error(
@@ -315,6 +315,7 @@ pub fn value_vectors() {
         name: "Sparse".to_owned(),
         policies: Vec::new(),
         submit_rules: Vec::new(),
+        constraints: Vec::new(),
         tables: vec![RawTable {
             id: table("tbl_sparse"),
             name: "Sparse".to_owned(),

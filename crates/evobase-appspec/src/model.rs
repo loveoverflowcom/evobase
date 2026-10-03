@@ -18,6 +18,8 @@ pub struct RawAppSpec {
     pub policies: Vec<crate::policy::RawOwnerRolePolicy>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub submit_rules: Vec<crate::policy::RawSubmitOrderRule>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub constraints: Vec<crate::RawFieldConstraint>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -84,10 +86,22 @@ fn check_name(name: &str, path: String) -> Result<(), Error> {
 
 impl CheckedAppSpec {
     pub fn compile(mut definition: RawAppSpec) -> Result<Self, Error> {
-        if definition.version != FORMAT_VERSION {
+        if !matches!(definition.version, 1 | FORMAT_VERSION) {
             return Err(Error::UnsupportedVersion {
                 found: definition.version,
                 supported: FORMAT_VERSION,
+            });
+        }
+        if definition.version == 1 && !definition.constraints.is_empty() {
+            return Err(Error::UnsupportedDeclaration {
+                version: 1,
+                declaration: "constraints",
+            });
+        }
+        if definition.constraints.len() > crate::MAX_CONSTRAINTS {
+            return Err(Error::LimitExceeded {
+                resource: "constraints",
+                limit: crate::MAX_CONSTRAINTS,
             });
         }
         if definition.tables.len() > MAX_TABLES {
@@ -155,7 +169,11 @@ impl CheckedAppSpec {
         definition
             .submit_rules
             .sort_by(|a, b| a.rule_id.cmp(&b.rule_id));
+        definition
+            .constraints
+            .sort_by(|a, b| a.constraint_id.cmp(&b.constraint_id));
         let spec = Self { definition };
+        crate::constraints::check_constraints(&spec)?;
         let mut captured = BTreeSet::new();
         let capture_targets: BTreeSet<_> = spec
             .definition

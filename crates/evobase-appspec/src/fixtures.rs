@@ -1,7 +1,7 @@
 //! Small synthetic fixtures; no tenant data, host credentials or trusted authority.
 use crate::{
-    AppId, CaptureRule, FORMAT_VERSION, FieldId, FieldType, RawAppSpec, RawField, RawRecord,
-    RawTable, RecordId, RecordRef, Scope, TableId, Value,
+    AppId, CaptureRule, FieldId, FieldType, RawAppSpec, RawField, RawRecord, RawTable, RecordId,
+    RecordRef, Scope, TableId, Value,
 };
 use std::collections::BTreeMap;
 
@@ -28,7 +28,7 @@ fn reference(target: &str) -> FieldType {
 
 pub fn example_spec() -> RawAppSpec {
     RawAppSpec {
-        version: FORMAT_VERSION,
+        version: 1,
         app_id: AppId::new("app_commerce").expect("fixture identity"),
         name: "Commerce".to_owned(),
         tables: vec![
@@ -87,6 +87,7 @@ pub fn example_spec() -> RawAppSpec {
         }],
         policies: vec![],
         submit_rules: vec![],
+        constraints: vec![],
     }
 }
 

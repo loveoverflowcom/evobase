@@ -50,6 +50,7 @@ identity!(AppId, "app_", "app");
 identity!(TableId, "tbl_", "table");
 identity!(FieldId, "fld_", "field");
 identity!(RecordId, "rec_", "record");
+identity!(ConstraintId, "constraint_", "constraint");
 
 /// A syntactically valid scope supplied by the caller; it does not establish authorization.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]

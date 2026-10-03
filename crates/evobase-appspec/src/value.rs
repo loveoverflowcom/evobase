@@ -160,6 +160,14 @@ impl CheckedAppSpec {
             }
         }
         let mut checked = Vec::with_capacity(records.len());
+        // A bounded index avoids scanning every declaration for every table field.
+        let mut constraints: BTreeMap<_, Vec<_>> = BTreeMap::new();
+        for rule in &self.definition().constraints {
+            constraints
+                .entry((&rule.table_id, &rule.field_id))
+                .or_default()
+                .push(rule);
+        }
         for record in sorted {
             let table = self.table(&record.table_id).expect("table checked above");
             for field_id in record.values.keys() {
@@ -233,6 +241,17 @@ impl CheckedAppSpec {
                             return Err(Error::MissingReference {
                                 table: target_table.clone(),
                                 record: reference.record_id.clone(),
+                            });
+                        }
+                    }
+                }
+                if let Some(rules) = constraints.get(&(&record.table_id, &field.id)) {
+                    for rule in rules {
+                        if !rule.constraint.accepts(value) {
+                            return Err(Error::ConstraintViolation {
+                                record: record.id.clone(),
+                                field: field.id.clone(),
+                                constraint: rule.constraint_id.clone(),
                             });
                         }
                     }

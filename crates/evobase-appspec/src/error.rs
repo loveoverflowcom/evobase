@@ -1,4 +1,4 @@
-use crate::{AppId, FieldId, RecordId, TableId};
+use crate::{AppId, ConstraintId, FieldId, RecordId, TableId};
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
@@ -10,6 +10,11 @@ pub enum Error {
     InvalidJson { message: String },
     #[error("unsupported AppSpec version {found}; supported version is {supported}")]
     UnsupportedVersion { found: u32, supported: u32 },
+    #[error("AppSpec version {version} does not support {declaration}")]
+    UnsupportedDeclaration {
+        version: u32,
+        declaration: &'static str,
+    },
     #[error("{resource} exceeds limit {limit}")]
     LimitExceeded {
         resource: &'static str,
@@ -29,6 +34,17 @@ pub enum Error {
     InvalidCapture { reason: String },
     #[error("invalid or unsupported policy/command rule: {rule_id}")]
     InvalidPolicy { rule_id: String },
+    #[error("invalid constraint {constraint}: {reason}")]
+    InvalidConstraint {
+        constraint: ConstraintId,
+        reason: &'static str,
+    },
+    #[error("constraint {constraint} failed for field {field} in record {record}")]
+    ConstraintViolation {
+        record: RecordId,
+        field: FieldId,
+        constraint: ConstraintId,
+    },
     #[error("expected app {expected}; received app {actual}")]
     WrongApp { expected: AppId, actual: AppId },
     #[error("record {record} crosses the expected scope")]

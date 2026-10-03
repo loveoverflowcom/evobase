@@ -36,8 +36,12 @@ const source = {
   status: execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).trim(),
   files: {},
 };
-for (const file of ['apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
-  source.files[file] = digest(await readFile(path.join(root, file)));
+for (const file of ['apps/evobase-builder/src/lib.rs', 'apps/evobase-builder/src/relations.rs', 'apps/evobase-builder/src/policy.rs', 'apps/evobase-builder/builder.css', 'apps/evobase-builder/tokens.css', 'apps/evobase-builder/index.html']) {
+  try {
+    source.files[file] = digest(await readFile(path.join(root, file)));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
 }
 
 const byId = (page, id) => page.getByTestId(id);
@@ -95,6 +99,16 @@ function stringField(receipt, id, field) {
 }
 async function rows(page, expected) {
   await page.waitForFunction(expected => document.querySelectorAll('[data-testid="typed-table"] tbody tr').length === expected, expected);
+}
+async function captureScenario(page, name, state) {
+  const screenshot = path.join(evidenceDir, `${name}.png`);
+  await page.screenshot({ path: screenshot, fullPage: true });
+  const bytes = await readFile(screenshot);
+  captures.push({ name, state, ...page.viewportSize(), locale: await page.locator('html').getAttribute('lang'), theme: await page.locator('html').getAttribute('data-theme') ?? 'light', origin: 'browser-runtime', path: screenshot, bytes: bytes.length, sha256: digest(bytes), inspected: false });
+}
+async function relationLine(page, id, expected) {
+  const cells = await byId(page, 'relation-lines').locator(`tr[data-record-id="${id}"]`).locator('th,td').allTextContents();
+  assert.deepEqual(cells, [id, ...expected]);
 }
 
 async function test(name, run) {
@@ -478,6 +492,124 @@ await test('native hash history Back/Forward retains edited records and invalid 
   await valueIs(page, name, 'Ada');
   await attributeIs(page, name, 'aria-invalid', 'false');
   assert.equal(await rawStorage(page), savedBytes);
+});
+
+await test('actual grid capture retains old price, derives a new imported line, and rejects supplied capture atomically', async page => {
+  await english(page);
+  await select(page, 'tbl_products');
+  await byId(page, 'cell-rec_product_1-fld_product_price').fill('1900');
+  await byId(page, 'cell-rec_product_1-fld_product_price').press('Enter');
+  await select(page, 'tbl_order_lines');
+  await valueIs(page, 'cell-rec_line_1-fld_line_price', '1250');
+  assert.equal(await byId(page, 'cell-rec_line_1-fld_line_price').evaluate(input => input.readOnly), true);
+  assert.equal(await byId(page, 'cell-rec_line_1-fld_line_product').evaluate(input => input.readOnly), true);
+  assert.equal(await byId(page, 'cell-rec_line_1-fld_line_quantity').evaluate(input => input.readOnly), false);
+  await byId(page, 'cell-rec_line_1-fld_line_quantity').fill('3');
+  await byId(page, 'cell-rec_line_1-fld_line_quantity').press('Enter');
+  await valueIs(page, 'cell-rec_line_1-fld_line_quantity', '3');
+  await captureScenario(page, 'capture-grid-en-light', 'Actual grid: updated product price 1900, historical line price 1250, editable quantity 3; managed fields have their original readonly attributes.');
+  await byId(page, 'import-source').fill('fld_line_order\tfld_line_product\tfld_line_quantity\nrec_order_1\trec_product_1\t1');
+  await byId(page, 'import-apply').click();
+  await rows(page, 2);
+  await valueIs(page, 'cell-rec_import_1-fld_line_price', '1900');
+  await valueIs(page, 'cell-rec_line_1-fld_line_price', '1250');
+  await save(page);
+  const accepted = await rawStorage(page);
+  const source = 'fld_line_order\tfld_line_product\tfld_line_quantity\tfld_line_price\nrec_order_1\trec_product_1\t1\t7';
+  await byId(page, 'import-source').fill(source);
+  await byId(page, 'import-apply').click();
+  await byId(page, 'import-errors').waitFor({ state: 'visible' });
+  assert.match(await byId(page, 'import-errors').textContent(), /Row 2, column 4 \(Captured price\).*derived/);
+  await rows(page, 2);
+  await valueIs(page, 'import-source', source);
+  assert.equal(await rawStorage(page), accepted);
+  await page.reload({ waitUntil: 'networkidle' });
+  await select(page, 'tbl_order_lines');
+  await valueIs(page, 'cell-rec_line_1-fld_line_price', '1250');
+  await valueIs(page, 'cell-rec_import_1-fld_line_price', '1900');
+  await valueIs(page, 'cell-rec_line_1-fld_line_quantity', '3');
+  const receipt = await envelope(page);
+  assert.ok(receipt.records_json.includes('"fld_line_price":{"type":"money","value":1250}'));
+  assert.ok(receipt.records_json.includes('"fld_line_price":{"type":"money","value":1900}'));
+  await select(page, 'tbl_products');
+  await valueIs(page, 'cell-rec_product_1-fld_product_price', '1900');
+});
+
+await test('capture guards reject historical price and product edits even if readonly is bypassed', async page => {
+  await english(page);
+  await select(page, 'tbl_products');
+  await byId(page, 'import-source').fill('fld_product_name\tfld_product_price\nAlternate product\t2200');
+  await byId(page, 'import-apply').click();
+  await rows(page, 2);
+  await save(page);
+  const baseline = await rawStorage(page);
+  await select(page, 'tbl_order_lines');
+  const price = 'cell-rec_line_1-fld_line_price';
+  const product = 'cell-rec_line_1-fld_line_product';
+  for (const [id, attempted, original, diagnostic] of [
+    [price, '7', '1250', /Captured historical prices cannot be edited/],
+    [product, 'rec_import_1', 'rec_product_1', /Create a new line to choose another product/],
+  ]) {
+    assert.equal(await byId(page, id).evaluate(input => input.readOnly), true);
+    // Deliberately bypass only the presentation restriction to exercise the Rust guard.
+    // No screenshots are captured while renderer-owned attributes are changed.
+    await byId(page, id).evaluate(input => input.removeAttribute('readonly'));
+    await byId(page, id).fill(attempted);
+    await byId(page, id).press('Enter');
+    await attributeIs(page, id, 'aria-invalid', 'true');
+    await valueIs(page, id, attempted);
+    const errorId = (await byId(page, id).getAttribute('aria-describedby')).split(' ')[0];
+    assert.match(await page.locator(`[id="${errorId}"]`).textContent(), diagnostic);
+    await byId(page, 'save').click();
+    await attributeIs(page, 'draft-status', 'data-state', 'error');
+    assert.equal(await rawStorage(page), baseline);
+    await byId(page, id).press('Escape');
+    await valueIs(page, id, original);
+    await attributeIs(page, id, 'aria-invalid', 'false');
+    await byId(page, id).evaluate(input => input.setAttribute('readonly', ''));
+  }
+  await save(page);
+  assert.equal(await rawStorage(page), baseline);
+  await page.reload({ waitUntil: 'networkidle' });
+  await select(page, 'tbl_order_lines');
+  await valueIs(page, price, '1250');
+  await valueIs(page, product, 'rec_product_1');
+  assert.equal(await byId(page, price).evaluate(input => input.readOnly), true);
+  assert.equal(await byId(page, product).evaluate(input => input.readOnly), true);
+});
+
+await test('relation laboratory projects live/captured totals, restricts delete, and localizes retained error state', async page => {
+  await english(page);
+  await relationLine(page, 'rec_line_1', ['1250', '1250', '2500']);
+  await textIncludes(page, 'relation-total', 'Historical total: 2500');
+  await byId(page, 'relation-price').fill('2000');
+  await byId(page, 'relation-change-price').click();
+  await textIncludes(page, 'relation-status', 'older lines keep their captured price');
+  await relationLine(page, 'rec_line_1', ['2000', '1250', '2500']);
+  await byId(page, 'relation-add-line').click();
+  await relationLine(page, 'rec_line_2', ['2000', '2000', '2000']);
+  await textIncludes(page, 'relation-total', 'Historical total: 4500');
+  await captureScenario(page, 'relation-normal-en-light', 'Relation laboratory: existing captured price 1250, new captured price 2000, current lookup 2000 and historical total 4500.');
+  const previous = await byId(page, 'relation-lines').locator('tbody').textContent();
+  await byId(page, 'relation-delete-product').click();
+  await textIncludes(page, 'relation-status', 'Cannot delete: a line still references');
+  assert.match(await byId(page, 'relation-status').textContent(), /rec_line_1 \/ fld_line_product/);
+  assert.equal(await byId(page, 'relation-lines').locator('tbody').textContent(), previous);
+  await textIncludes(page, 'relation-total', 'Historical total: 4500');
+  await byId(page, 'relation-price').fill('abc');
+  await byId(page, 'relation-change-price').click();
+  await attributeIs(page, 'relation-price', 'aria-invalid', 'true');
+  await textIncludes(page, 'relation-status', 'integer minor units');
+  await valueIs(page, 'relation-price', 'abc');
+  assert.equal(await byId(page, 'relation-lines').locator('tbody').textContent(), previous);
+  await byId(page, 'locale').click();
+  await textIncludes(page, 'relation-status', 'Nhập giá bằng số nguyên');
+  await textIncludes(page, 'relation-total', 'Tổng lịch sử: 4500');
+  assert.match(await byId(page, 'relation-lines').locator('thead').textContent(), /Giá hiện tại.*Giá đã chốt/);
+  await captureScenario(page, 'relation-invalid-vi-light', 'Relation laboratory: invalid price abc is retained, prior derived results remain, localized Vietnamese typed feedback is visible.');
+  await byId(page, 'locale').click();
+  await textIncludes(page, 'relation-status', 'integer minor units');
+  assert.equal(await rawStorage(page), null, 'the relation laboratory does not claim to persist the independent Builder draft');
 });
 
 await test('VI/EN × light/dark desktop and compact handoff have no axe violations or page overflow', async page => {

@@ -51,6 +51,8 @@ td input.numeric{text-align:right}
 th:first-child,td:first-child{min-width:48px;text-align:center;color:var(--onSurfaceVariant)}
 .cell-help{display:block;min-width:140px;color:var(--error);padding:4px;font-size:12px}
 .cell-help:empty{display:none}
+.managed-note{display:block;max-width:220px;font-size:var(--type-label-size);line-height:var(--type-label-lineHeight);color:var(--onSurfaceVariant);padding:4px}
+input.managed{background:var(--surfaceContainer);border-color:var(--outlineVariant)}
 .ref-label{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--secondaryContainer);color:var(--onSecondaryContainer);margin-top:4px;font-size:12px}
 .support{font-size:12px;color:var(--onSurfaceVariant)}
 .field-list{display:grid;gap:8px}

@@ -1,5 +1,8 @@
 //! A mounted local-only Builder. Checked Rust definitions own validation;
 //! browser state owns unsaved input, selection, focus and local persistence.
+pub mod relations;
+
+use evobase_appspec::relations::{BatchChange, LocalPreviewPolicy, RelationError, RelationStore};
 use evobase_appspec::{
     CheckedAppSpec, Error, FieldId, FieldType, RawAppSpec, RawField, RawRecord, Scope, TableId,
     Value,
@@ -215,6 +218,84 @@ fn diagnostic(error: &Error, vi: bool) -> String {
     }
 }
 
+/// This restoration seam is consciously local preview history. It grants no
+/// hosted authority or provenance. Every new/changed authoring fact goes through
+/// the same relation batch commands that own captures and the final graph.
+fn apply_draft_changes(
+    checked: &CheckedAppSpec,
+    scope: &Scope,
+    before: &[RawRecord],
+    next: Vec<RawRecord>,
+) -> Result<Vec<RawRecord>, RelationError> {
+    let history = checked.validate_records(scope, before)?;
+    let mut store =
+        RelationStore::from_checked_snapshot(checked.clone(), history, &LocalPreviewPolicy)?;
+    let original: BTreeMap<_, _> = before
+        .iter()
+        .map(|row| ((row.table_id.clone(), row.id.clone()), row))
+        .collect();
+    let mut seen = std::collections::BTreeSet::new();
+    let mut changes = Vec::new();
+    for row in next {
+        let key = (row.table_id.clone(), row.id.clone());
+        if !seen.insert(key.clone()) {
+            return Err(RelationError::DuplicateMutation {
+                table: key.0,
+                record: key.1,
+            });
+        }
+        match original.get(&key) {
+            Some(old) if **old == row => {}
+            Some(_) => changes.push(BatchChange::Replace(row)),
+            None => changes.push(BatchChange::Insert(row)),
+        }
+    }
+    for key in original.keys().filter(|key| !seen.contains(*key)) {
+        changes.push(BatchChange::Delete {
+            table_id: key.0.clone(),
+            record_id: key.1.clone(),
+        });
+    }
+    store.apply_batch(changes)?;
+    Ok(store.records().to_raw())
+}
+
+fn relation_diagnostic(error: &RelationError, vi: bool) -> String {
+    match error {
+        RelationError::Kernel(error) => diagnostic(error, vi),
+        RelationError::CaptureInputForbidden { .. } => tr(
+            vi,
+            "Giá đã chốt được tính khi tạo dòng; để trống cột này.",
+            "Captured prices are derived when creating a line; leave this column empty.",
+        ),
+        RelationError::CapturedValueImmutable { .. } => tr(
+            vi,
+            "Không thể sửa giá lịch sử đã chốt.",
+            "Captured historical prices cannot be edited.",
+        ),
+        RelationError::CapturedReferenceImmutable { .. } => tr(
+            vi,
+            "Tạo dòng mới để chọn sản phẩm khác.",
+            "Create a new line to choose another product.",
+        ),
+        RelationError::CaptureSourceInvalid { .. } => tr(
+            vi,
+            "Nguồn giá không có giá trị tiền hợp lệ.",
+            "The capture source has no valid money value.",
+        ),
+        RelationError::BatchLimit => tr(
+            vi,
+            "Số thay đổi vượt giới hạn của một lượt kiểm tra.",
+            "Too many changes in one checked batch.",
+        ),
+        _ => tr(
+            vi,
+            "Thay đổi không hợp lệ với các liên kết của bản nháp. Dữ liệu trước đó được giữ nguyên.",
+            "This change does not satisfy the draft relation rules. Prior data is preserved.",
+        ),
+    }
+}
+
 /// Pending edits are parsed together and the entire candidate dataset is validated
 /// before any row is changed. A diagnostic preserves every original input.
 fn candidate(
@@ -246,24 +327,28 @@ fn candidate(
             }
         }
     }
-    if errors.is_empty()
-        && let Err(error) = checked.validate_records(&scope, &output)
-    {
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+    apply_draft_changes(&checked, &scope, records, output).map_err(|error| {
         let key = match &error {
-            Error::Required { record, field } | Error::WrongType { record, field, .. } => output
+            RelationError::Kernel(
+                Error::Required { record, field } | Error::WrongType { record, field, .. },
+            ) => records
                 .iter()
                 .find(|r| &r.id == record)
                 .map(|r| cell_key(&r.table_id, record, field))
                 .unwrap_or_else(|| "dataset".to_owned()),
+            RelationError::CapturedValueImmutable { field }
+            | RelationError::CapturedReferenceImmutable { field } => buffers
+                .keys()
+                .find(|key| key.ends_with(&format!("/{field}")))
+                .cloned()
+                .unwrap_or_else(|| "dataset".to_owned()),
             _ => "dataset".to_owned(),
         };
-        errors.insert(key, diagnostic(&error, vi));
-    }
-    if errors.is_empty() {
-        Ok(output)
-    } else {
-        Err(errors)
-    }
+        BTreeMap::from([(key, relation_diagnostic(&error, vi))])
+    })
 }
 
 fn prepare_import(
@@ -375,45 +460,57 @@ fn prepare_import(
             values,
         });
     }
-    if diagnostics.is_empty()
-        && let Err(error) = checked.validate_records(&scope, &next)
-    {
-        let location = match &error {
-            Error::Required { record, field } | Error::WrongType { record, field, .. } => next
-                [start_index..]
-                .iter()
-                .position(|r| &r.id == record)
-                .map(|row| {
-                    let field_name = table
-                        .fields
-                        .iter()
-                        .find(|f| &f.id == field)
-                        .map(|f| f.name.as_str())
-                        .unwrap_or(field.as_str());
-                    let column = headers
-                        .iter()
-                        .position(|h| *h == field.as_str())
-                        .map(|c| (c + 1).to_string())
-                        .unwrap_or_else(|| tr(vi, "thiếu", "missing"));
-                    format!(
-                        "{} {}, {} {} ({}): ",
-                        tr(vi, "Hàng", "Row"),
-                        row + 2,
-                        tr(vi, "cột", "column"),
-                        column,
-                        field_name
-                    )
-                })
-                .unwrap_or_default(),
-            _ => String::new(),
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+    let output = apply_draft_changes(&checked, &scope, baseline, next.clone());
+    output.map_err(|error| {
+        let (record, field) = match &error {
+            RelationError::Kernel(
+                Error::Required { record, field } | Error::WrongType { record, field, .. },
+            ) => (Some(record), Some(field)),
+            RelationError::CaptureInputForbidden { field }
+            | RelationError::CaptureSourceInvalid { field } => (
+                next[start_index..]
+                    .iter()
+                    .find(|r| {
+                        r.values
+                            .get(field)
+                            .is_some_and(|v| !matches!(v, Value::Blank | Value::Null))
+                    })
+                    .map(|r| &r.id),
+                Some(field),
+            ),
+            _ => (None, None),
         };
-        diagnostics.push(format!("{location}{}", diagnostic(&error, vi)));
-    }
-    if diagnostics.is_empty() {
-        Ok(next)
-    } else {
-        Err(diagnostics)
-    }
+        let location = field
+            .map(|field| {
+                let row = record
+                    .and_then(|record| next[start_index..].iter().position(|r| &r.id == record))
+                    .unwrap_or(0);
+                let name = table
+                    .fields
+                    .iter()
+                    .find(|f| &f.id == field)
+                    .map(|f| f.name.as_str())
+                    .unwrap_or(field.as_str());
+                let column = headers
+                    .iter()
+                    .position(|h| *h == field.as_str())
+                    .map(|c| (c + 1).to_string())
+                    .unwrap_or_else(|| tr(vi, "thiếu", "missing"));
+                format!(
+                    "{} {}, {} {} ({}): ",
+                    tr(vi, "Hàng", "Row"),
+                    row + 2,
+                    tr(vi, "cột", "column"),
+                    column,
+                    name
+                )
+            })
+            .unwrap_or_default();
+        vec![format!("{location}{}", relation_diagnostic(&error, vi))]
+    })
 }
 
 #[component]
@@ -455,6 +552,21 @@ fn FieldEditor(
     let key_description = key.clone();
     let described = format!("error-{context}-{}-{}", record.as_str(), field.id.as_str());
     let described_input = described.clone();
+    let managed_id = format!(
+        "managed-{context}-{}-{}",
+        record.as_str(),
+        field.id.as_str()
+    );
+    let managed_input = managed_id.clone();
+    let identity = StoredValue::new((table.clone(), field.id.clone()));
+    let managed = move || {
+        identity.with_value(|(table, field)| {
+            spec.get().capture_rules.iter().any(|rule| {
+                &rule.line_table == table
+                    && (&rule.captured_price_field == field || &rule.product_ref_field == field)
+            })
+        })
+    };
     let label_name = name.clone();
     let reference = matches!(field.field_type, FieldType::Ref { .. });
     let ref_table = table.clone();
@@ -463,6 +575,9 @@ fn FieldEditor(
     let commit = move || {
         if composing.get_untracked() {
             return false;
+        }
+        if buffers.get_untracked().is_empty() {
+            return true;
         }
         match candidate(
             &spec.get_untracked(),
@@ -487,10 +602,10 @@ fn FieldEditor(
     let key_escape = key.clone();
     view! {
         <input data-testid=format!("{context}-{}-{}", record.as_str(), field.id.as_str())
-            data-cell-key=key class:numeric=numeric disabled=move || saving.get() || paused.get()
+            data-cell-key=key class:numeric=numeric class:managed=managed readonly=managed disabled=move || saving.get() || paused.get()
             aria-label=move || format!("{} · {}", label_name, tr(locale.get(), "Bản ghi", "Record"))
             aria-invalid=move || errors.get().contains_key(&key_error).to_string()
-            aria-describedby=described_input prop:value=current
+            aria-describedby=move || if managed() { format!("{described_input} {managed_input}") } else { described_input.clone() } prop:value=current
             on:input=move |event| {
                 let text = event_target_value(&event);
                 buffers.update(|b| { b.insert(key_input.clone(), text); });
@@ -521,6 +636,7 @@ fn FieldEditor(
                 } else { None }
             }).unwrap_or_else(|| tr(locale.get(), "Chưa chọn liên kết", "No reference selected"))
         }}</span>
+        <span id=managed_id class="managed-note" hidden=move || !managed()>{move || tr(locale.get(), "Giữ nguyên sản phẩm và giá đã chốt. Tạo dòng mới để thay đổi.", "Historical product and price are fixed. Create a new line to change them.")}</span>
         <span id=described class="cell-help">{move || errors.get().get(&key_description).cloned().unwrap_or_default()}</span>
     }
 }
@@ -895,6 +1011,7 @@ pub fn App() -> impl IntoView {
                                     </div>
                                     <Show when=move || errors.get().contains_key("field") || errors.get().contains_key("definition")><p class="error-panel" role="alert" id="app-name-error">{move || { let diagnostics = errors.get(); diagnostics.get("field").or_else(|| diagnostics.get("definition")).cloned().unwrap_or_default() }}</p></Show>
                                 </section>
+                                <relations::RelationInspector locale/>
                                 <section class="surface"><details><summary>{move || tr(locale.get(), "Mô phỏng gián đoạn", "Interruption simulation")}</summary><p class="support">{move || tr(locale.get(), "Chỉ thử trạng thái cục bộ. Không có đăng nhập hay phiên máy chủ.", "Local state exercise only. There is no sign-in or server session.")}</p><button data-testid="session-toggle" disabled=move || saving.get() on:click=move |_| { paused.update(|v| *v = !*v); status.set(if paused.get_untracked() { Status::Expired } else { Status::Dirty }); }>{move || tr(locale.get(), if paused.get() { "Tiếp tục chỉnh nháp" } else { "Mô phỏng phiên hết hạn" }, if paused.get() { "Resume draft editing" } else { "Simulate session expiry" })}</button></details></section>
                             </aside>
                         </div>

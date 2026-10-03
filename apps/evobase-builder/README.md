@@ -7,7 +7,7 @@ Below 600 CSS px it offers a read-only draft summary and a wide-screen handoff.
 
 The observable invariant is that invalid cell edits or TSV imports never partially
 change the checked dataset. `evobase-appspec` owns parsing, identity, requiredness,
-types, exact signed 64-bit values and final-state validation. Leptos owns pending
+types, exact signed 64-bit values, captures and final-state validation. Leptos owns pending
 input, focus, table selection, theme, locale and draft lifecycle. Table and record
 keys are stable Rust identities; labels are presentation data.
 
@@ -38,6 +38,21 @@ invalid row/column or missing required field. Empty input means `Blank`; `null`
 means explicit `Null`; text literals `null`, empty text or a leading `text:`
 are represented with the `text:` escape. Money inputs are exact integer minor
 units. No business number passes through JavaScript numeric JSON conversion.
+
+Grid edits, imports and local saves enter the production `RelationStore` batch
+commands. Existing captured prices and their product references are read-only,
+and the Rust command rejects changes independently of that presentation state.
+New line imports omit or leave the captured-price column blank; the checked Insert
+derives it from the final catalog facts. Supplying a captured price rejects the
+whole import with a row/column diagnostic. Catalog edits keep existing historical
+prices intact. Restoring a prior local snapshot uses an explicit
+`LocalPreviewPolicy` marker: this checks the stored graph without attesting to
+historical provenance or granting hosted authority.
+
+The relation inspector is an independent synthetic example using the same Rust
+store and bounded pure query APIs. It demonstrates live price versus capture,
+reverse references, subtotal/total and restrict-delete failures. These query
+examples do not implement portable formula authoring or deployment.
 
 Local persistence stores opaque canonical definition and record JSON strings.
 Restore passes through the checked Rust codecs, including their byte/depth/node

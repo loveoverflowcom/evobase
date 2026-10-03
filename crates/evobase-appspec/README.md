@@ -27,3 +27,38 @@ The commerce v1 golden is independently authored and checked in. Shared conforma
 with `cargo test -p evobase-appspec --test vectors` and `cargo run -p evobase-appspec --example conformance`.
 The same example can compile for `wasm32-wasip1`; compare stdout from its WASI runtime with native
 stdout. This proves the listed semantic vectors, not browser UI, host authentication or storage.
+
+## Relations and pure query projections
+
+`relations::RelationStore` supports canonical N:1 references, derived reverse edges and
+restrict-on-delete. `apply_batch` checks the complete final graph and commits all changes together;
+deleting both related records in one batch is allowed. Insert derives captured Money from the
+final Product facts. Supplied captures reject, and existing capture values and their source
+references cannot change. Updating a Product price changes a live lookup while retaining older
+line prices. Dependent captures, 1:1, N:M and other delete modes are outside this profile.
+
+`from_checked_snapshot` requires an explicit `LocalPreviewPolicy` marker and restores historical
+facts only at a trusted synthetic local persistence/fixture adapter.
+It revalidates their schema, types, scope and graph; it cannot prove a historical price's provenance.
+An untrusted request body must never enter through this restore path. New authoring input uses
+Insert; edited existing facts use Replace. Hosted persistence/restore remains deferred. The browser
+Builder uses these operations for candidate grid changes, imports and local save validation.
+
+`CheckedFormulas` compiles bounded pure query projections against checked field identities. The
+subset is numeric Field, one-hop Lookup, derived reverse Sum, Product, Total and acyclic Named
+reuse. Integer × Money produces Money; Money × Money rejects. Blank/Null propagate through Product;
+Sum and Total ignore null values, and an empty Sum is typed zero. Arithmetic uses checked signed
+64-bit minor units, with no floating-point or currency conversion. Default budgets are 256 evaluated
+nodes, depth 24 and 1,024 visited records, including root, lookup targets and scanned child candidates.
+Compilation rejects cycles and mismatched types; evaluation has exact overflow/depth/node/record
+errors and creates no effects. App/table/field structure or capture-rule changes reject old checked
+projections; labels and order can change without rebinding IDs. These are query APIs: editable portable
+formula declarations, formula authoring and formula export remain deferred, as do recursive
+expressions, scripts and SQL.
+
+Every relation output requires an explicit `OutputPolicy` attesting the exact current definition and
+facts. Complete reverse/aggregate scans require a separate data-independent full-table projection
+grant; hosts with row restrictions must reject that unsupported projection before inspecting rows.
+`LocalPreviewPolicy` is solely for labeled synthetic local previews and supplies no hosted authority.
+Run `cargo test -p evobase-appspec --test relations` for capture/history, final-state rollback,
+independent adjacency/arithmetic oracles, bounded expressions and snapshot/output-policy vectors.
